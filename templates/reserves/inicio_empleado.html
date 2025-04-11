@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Panel de Reservas - Empleado</h2>
+
+<div class="botones-panel">
+    <a href="{% url 'crear-habitacion' %}" class="btn btn-primary">➕ Crear Habitación</a>
+    <a href="{% url 'lista-habitaciones' %}" class="btn btn-secondary">🛏 Ver Habitaciones</a>
+    <a href="{% url 'crear-reserva-empleado' %}" class="btn btn-success">📝 Crear Reserva</a>
+    <a href="{% url 'lista-reservas-empleado' %}" class="btn btn-warning">📋 Ver Reservas</a>
+</div>
+{% endblock %}

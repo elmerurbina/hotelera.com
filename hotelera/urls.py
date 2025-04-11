@@ -26,4 +26,5 @@ urlpatterns = [
     path('', HomeView.as_view(), name='home'),
 
     path('profiles/', include('services.profiles.urls')),
+    path('reserves/', include('services.reserves.urls')),
 ]

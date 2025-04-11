@@ -90,6 +90,6 @@ class LoginEmpleadoView(View):
 
         if user and Empleado.objects.filter(user=user).exists():
             login(request, user)
-            return redirect('reservas')  # Nombre de la URL que redirige al panel de reservas
+            return redirect('reserves-inicio')  # Nombre de la URL que redirige al panel de reservas
         else:
             return render(request, 'auth/login_empleado.html', {'error': 'Credenciales inválidas o no autorizado como empleado'})

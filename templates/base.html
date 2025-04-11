@@ -36,7 +36,7 @@
             <!-- Enlace a Reservas, solo si el usuario está autenticado y es tipo hotel -->
             {% if user.is_authenticated and user.rol == 'hotel' %}
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'admin:index' %}">Reservas</a>
+                <a class="nav-link" href="{% url 'login_empleado' %}">Reservas</a>
             </li>
             {% endif %}
 
