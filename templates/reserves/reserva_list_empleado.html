@@ -13,26 +13,27 @@
     <th>Habitaciones</th>
     <th>Acciones</th>
   </tr>
-  {% for reserva in reservas %}
-  <tr>
-    <td>#{{ reserva.id }}</td>
-    <td>{{ reserva.usuario.email }}</td>
-    <td>{{ reserva.estado }}</td>
-    <td>{{ reserva.fecha_checkin }}</td>
-    <td>{{ reserva.fecha_checkout }}</td>
-    <td>
-      {% for h in reserva.habitaciones.all %}
-        {{ h.numero }} ({{ h.tipo }})<br>
-      {% endfor %}
-    </td>
-    <td>
-      <a href="">Cambiar Estado</a>
-    </td>
-  </tr>
+  {% for item in reservas_con_habitaciones %}
+    <tr>
+      <td>#{{ item.reserva.id }}</td>
+      <td>{{ item.reserva.usuario.email }}</td>
+      <td>{{ item.reserva.estado }}</td>
+      <td>{{ item.reserva.fecha_checkin }}</td>
+      <td>{{ item.reserva.fecha_checkout }}</td>
+      <td>
+        {% for h in item.habitaciones %}
+          {{ h.habitacion.numero }} ({{ h.habitacion.tipo }})<br>
+        {% endfor %}
+      </td>
+      <td>
+        <a href="">Cambiar Estado</a>
+      </td>
+    </tr>
   {% empty %}
-  <tr>
-    <td colspan="7">No hay reservas.</td>
-  </tr>
+    <tr>
+      <td colspan="7">No hay reservas.</td>
+    </tr>
   {% endfor %}
 </table>
+
 {% endblock %}

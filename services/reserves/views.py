@@ -55,7 +55,17 @@ class HabitacionListView(LoginRequiredMixin, EmpleadoRequiredMixin, View):
 class ReservaListEmpleadoView(LoginRequiredMixin, EmpleadoRequiredMixin, View):
     def get(self, request):
         reservas = Reserva.objects.filter(hotel=request.user.empleado.hotel)
-        return render(request, 'reserves/reserva_list_empleado.html', {'reservas': reservas})
+        reservas_con_habitaciones = []
+
+        # Obtener las habitaciones asociadas a cada reserva
+        for reserva in reservas:
+            habitaciones = ReservaHabitacion.objects.filter(reserva=reserva).select_related('habitacion')
+            reservas_con_habitaciones.append({
+                'reserva': reserva,
+                'habitaciones': habitaciones
+            })
+
+        return render(request, 'reserves/reserva_list_empleado.html', {'reservas_con_habitaciones': reservas_con_habitaciones})
 
 
 # 🔁 Cambiar estado de una reserva
