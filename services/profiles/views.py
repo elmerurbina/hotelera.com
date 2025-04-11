@@ -75,4 +75,21 @@ class RegistroEmpleadoView(View):
         )
 
         Empleado.objects.create(user=empleado_user, hotel=request.user)
-        return redirect('admin:index')
+        return redirect('home')
+
+
+class LoginEmpleadoView(View):
+    def get(self, request):
+        return render(request, 'auth/login_empleado.html')
+
+    def post(self, request):
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+
+        user = authenticate(request, username=username, password=password)
+
+        if user and Empleado.objects.filter(user=user).exists():
+            login(request, user)
+            return redirect('reservas')  # Nombre de la URL que redirige al panel de reservas
+        else:
+            return render(request, 'auth/login_empleado.html', {'error': 'Credenciales inválidas o no autorizado como empleado'})
