@@ -1,0 +1,60 @@
+# Python
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+*.pyo
+*.pyc
+*.pyd
+*.db
+*.sqlite3
+
+# Django
+*.log
+local_settings.py
+db.sqlite3
+media/
+staticfiles/
+*.pot
+
+# Bytecode files
+*.pyc
+*.pyo
+__pycache__/
+
+# Virtual environment
+venv/
+env/
+ENV/
+*.egg-info/
+
+# IDEs and editors
+.vscode/
+.idea/
+*.swp
+*~
+*.bak
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+
+# Docker
+*.log
+docker-compose.override.yml
+
+# MySQL config
+my.cnf
+
+# Python testing
+.coverage
+.tox/
+.nox/
+*.cover
+*.hypothesis/
+.pytest_cache/
+
+# Static files collected by Django
+/static/
