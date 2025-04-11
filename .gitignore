@@ -56,5 +56,4 @@ my.cnf
 *.hypothesis/
 .pytest_cache/
 
-# Static files collected by Django
-/static/
+
