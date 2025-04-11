@@ -3,8 +3,32 @@ from django.db import models
 
 
 class User(AbstractUser):
-    class Meta:
-        app_label = 'profiles'  # Esto ayuda a resolver ambigüedades
+    ROL_CHOICES = (
+        ('usuario', 'Usuario Particular'),
+        ('hotel', 'Hotel'),
+    )
+
+    rol = models.CharField(max_length=10, choices=ROL_CHOICES, default='usuario')  # Valor por defecto
+
+    # Campos comunes
+    telefono = models.CharField(max_length=15, blank=True, null=True)
+    direccion = models.TextField(blank=True, null=True)
+
+    # Campos exclusivos de usuario
+    nombre_completo = models.CharField(max_length=255, blank=True, null=True)
+    numero_cedula = models.CharField(max_length=20, blank=True, null=True)
+
+    # Campos exclusivos de hotel
+    nombre_hotel = models.CharField(max_length=50, blank=True, null=True)
 
     def __str__(self):
-        return self.username
+        return self.email if self.email else self.username
+
+
+class Empleado(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)  # Usuario registrado como empleado
+    hotel = models.ForeignKey(User, on_delete=models.CASCADE, related_name="empleados")  # Hotel dueño
+    creado_en = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} (Empleado de {self.hotel.nombre_hotel})"

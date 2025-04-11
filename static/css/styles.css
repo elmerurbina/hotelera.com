@@ -1,0 +1,127 @@
+/* styles.css */
+
+/* Estilos generales */
+body {
+  font-family: Arial, sans-serif;
+  background-color: var(--color-bg-light);
+  color: var(--color-text-main);
+  margin: 0;
+  padding: 0;
+  min-height: 100vh; /* Asegura que el contenido ocupe toda la altura de la pantalla */
+  display: flex;
+  flex-direction: column;
+}
+
+/* Contenedor principal */
+.container {
+  margin-top: 50px;
+  flex: 1; /* Hace que el contenido ocupe el espacio restante */
+}
+
+/* Estilos del navbar */
+.navbar {
+  background-color: var(--color-primary);
+}
+
+.navbar .navbar-brand {
+  color: var(--color-secondary);
+}
+
+.navbar .nav-link {
+  color: white;
+}
+
+.navbar .nav-link:hover {
+  color: var(--color-secondary);
+}
+
+/* Estilos para los formularios */
+form {
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+form input[type="text"],
+form input[type="email"],
+form input[type="password"],
+form textarea {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+form textarea {
+  resize: vertical;
+  height: 100px;
+}
+
+form select {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+form button {
+  background-color: var(--color-primary);
+  color: white;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  width: 100%;
+  margin-top: 10px;
+}
+
+form button:hover {
+  background-color: var(--color-secondary);
+}
+
+/* Estilos para los campos adicionales según el rol */
+#usuario_campos, #hotel_campos {
+  display: none;
+}
+
+#usuario_campos input,
+#hotel_campos input {
+  margin-top: 10px;
+}
+
+/* Footer */
+footer {
+  background-color: var(--color-primary);
+  color: white;
+  padding: 20px 0;
+  text-align: center;
+  width: 100%;
+  left: 0;
+  /* Cambiar a relative para permitir que se mueva con el contenido */
+  position: relative;
+}
+
+/* Estilos responsivos */
+@media (max-width: 768px) {
+  .navbar-nav {
+    text-align: center;
+  }
+
+  .navbar-toggler {
+    margin-left: auto;
+  }
+
+  form {
+    padding: 15px;
+  }
+
+  form input, form textarea, form select, form button {
+    font-size: 0.9rem;
+  }
+}
+

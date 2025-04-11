@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Registrar Empleado{% endblock %}
+
+{% block content %}
+<h2>Registrar Empleado</h2>
+<form method="POST">
+  {% csrf_token %}
+  
+  <!-- Campos de empleado -->
+  <input type="text" name="username" placeholder="Nombre de usuario" required><br>
+  <input type="email" name="email" placeholder="Correo electrónico" required><br>
+  <input type="password" name="password" placeholder="Contraseña" required><br>
+
+  <button type="submit">Registrar empleado</button>
+</form>
+{% endblock %}
