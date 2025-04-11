@@ -1,3 +1,5 @@
+from django.core.exceptions import ObjectDoesNotExist
+from django.utils.crypto import get_random_string
 from django.views import View
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
@@ -71,10 +73,6 @@ class ReservaUpdateEstadoView(LoginRequiredMixin, EmpleadoRequiredMixin, View):
 
 
 # 📝 Crear reserva como empleado
-from django.contrib.auth.models import User
-from django.core.exceptions import ObjectDoesNotExist
-from django.utils.crypto import get_random_string  # Para crear contraseñas temporales
-
 class ReservaEmpleadoCreateView(LoginRequiredMixin, EmpleadoRequiredMixin, View):
     def get(self, request):
         habitaciones = Habitacion.objects.filter(hotel=request.user.empleado.hotel, estado='disponible')
@@ -90,6 +88,7 @@ class ReservaEmpleadoCreateView(LoginRequiredMixin, EmpleadoRequiredMixin, View)
         if tipo_usuario == 'registrado':
             correo_usuario = request.POST.get('correo_usuario')
             try:
+                # Usa User desde el modelo de perfiles
                 usuario = User.objects.get(email=correo_usuario, rol='usuario')
             except ObjectDoesNotExist:
                 return render(request, 'reserves/reserva_empleado_form.html', {
@@ -104,6 +103,7 @@ class ReservaEmpleadoCreateView(LoginRequiredMixin, EmpleadoRequiredMixin, View)
             correo_usuario = request.POST.get('correo_usuario')  # campo oculto o generado automáticamente
             contraseña_temporal = get_random_string(length=8)
 
+            # Crea un nuevo usuario utilizando tu modelo personalizado
             usuario = User.objects.create_user(
                 username=correo_usuario,
                 email=correo_usuario,
