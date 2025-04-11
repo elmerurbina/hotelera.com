@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% block title %}Crear Reserva para Usuario{% endblock %}
+
+{% block content %}
+<h2>Crear Reserva</h2>
+<form method="post">
+  {% csrf_token %}
+  
+  <!-- Paso 1: Buscar o registrar usuario -->
+  <label>¿El usuario ya está registrado?</label><br>
+  <input type="radio" name="tipo_usuario" value="registrado" checked onchange="toggleCamposUsuario()"> Sí<br>
+  <input type="radio" name="tipo_usuario" value="nuevo" onchange="toggleCamposUsuario()"> No<br><br>
+
+  <div id="campo-correo">
+    <label>Correo del usuario:</label>
+    <input type="email" name="correo_usuario" required><br>
+  </div>
+
+  <div id="campos-nuevo-usuario" style="display: none;">
+    <label>Nombre:</label>
+    <input type="text" name="nombre"><br>
+
+    <label>Apellido:</label>
+    <input type="text" name="apellido"><br>
+
+    <label>Teléfono:</label>
+    <input type="text" name="telefono"><br>
+
+    <label>Correo:</label>
+    <input type="email" name="nuevo_correo"><br>
+  </div>
+
+  <!-- Paso 2: Datos de la reserva -->
+  <label>Fecha check-in:</label>
+  <input type="date" name="fecha_checkin" required><br>
+
+  <label>Fecha check-out:</label>
+  <input type="date" name="fecha_checkout" required><br>
+
+  <label>Método de pago:</label>
+  <input type="text" name="metodo_pago" required><br>
+
+  <!-- Paso 3: Selección de habitaciones -->
+  <label>Seleccionar habitaciones:</label><br>
+  {% for habitacion in habitaciones %}
+    <input type="checkbox" name="habitaciones" value="{{ habitacion.id }}">
+    Habitación {{ habitacion.numero }} - ${{ habitacion.precio_noche }}<br>
+  {% endfor %}
+
+  <br>
+  <button type="submit">Guardar reserva</button>
+</form>
+
+<script>
+  function toggleCamposUsuario() {
+    const tipo = document.querySelector('input[name="tipo_usuario"]:checked').value;
+    const camposNuevo = document.getElementById("campos-nuevo-usuario");
+    const campoCorreo = document.getElementById("campo-correo");
+
+    if (tipo === "nuevo") {
+      camposNuevo.style.display = "block";
+      campoCorreo.style.display = "none";
+    } else {
+      camposNuevo.style.display = "none";
+      campoCorreo.style.display = "block";
+    }
+  }
+</script>
+{% endblock %}

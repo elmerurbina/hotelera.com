@@ -30,6 +30,8 @@ class Reserva(models.Model):
     fecha_reserva = models.DateTimeField(auto_now_add=True)
     fecha_checkin = models.DateField()
     fecha_checkout = models.DateField()
+    correo = models.EmailField(max_length=254, null=False, unique=True, default="hotelera.com@gmail.com")
+    telefono = models.CharField(max_length=20, null=True, blank=True)
     estado = models.CharField(max_length=50, choices=ESTADO_CHOICES, default='pendiente')
     metodo_pago = models.CharField(max_length=50)
     monto_total = models.DecimalField(max_digits=10, decimal_places=2)

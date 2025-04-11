@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}Crear Habitación{% endblock %}
+
+{% block content %}
+
+    <h2>Crear habitación</h2>
+    <form method="post">
+        {% csrf_token %}
+        <label>Número:</label>
+        <input type="text" name="numero" required><br>
+
+        <label>Descripción:</label>
+        <textarea name="descripcion" required></textarea><br>
+
+        <label>Precio por noche:</label> <br>
+        <input type="number" name="precio_noche" step="0.01" required><br>
+
+        <label>Tipo:</label>
+        <input type="text" name="tipo" required><br>
+
+        <label>Estado:</label>
+        <select name="estado">
+            <option value="disponible">Disponible</option>
+            <option value="ocupada">Ocupada</option>
+            <option value="mantenimiento">Mantenimiento</option>
+        </select><br>
+
+        <button type="submit">Guardar habitación</button>
+    </form>
+
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block title %}Reservar{% endblock %}
+
+{% block content %}
+<h2>Crear Reserva</h2>
+<form method="post">
+    {% csrf_token %}
+    <label>ID del hotel:
+        <input type="number" name="hotel_id" required>
+    </label><br>
+    <label>Monto Total:
+        <input type="number" name="monto_total" required>
+    </label><br>
+    <label>IDs de habitaciones (separadas por coma):</label><br>
+    <input type="text" name="habitaciones" placeholder="1,2,3"><br>
+
+    <button type="submit">Reservar</button>
+</form>
+{% endblock %}

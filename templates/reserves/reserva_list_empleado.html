@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Reservas de mi Hotel</h2>
+<a href="{% url 'crear-reserva-empleado' %}">Crear nueva reserva</a><br><br>
+
+<table border="1">
+  <tr>
+    <th>Reserva</th>
+    <th>Usuario</th>
+    <th>Estado</th>
+    <th>Check-in</th>
+    <th>Check-out</th>
+    <th>Habitaciones</th>
+    <th>Acciones</th>
+  </tr>
+  {% for reserva in reservas %}
+  <tr>
+    <td>#{{ reserva.id }}</td>
+    <td>{{ reserva.usuario.email }}</td>
+    <td>{{ reserva.estado }}</td>
+    <td>{{ reserva.fecha_checkin }}</td>
+    <td>{{ reserva.fecha_checkout }}</td>
+    <td>
+      {% for h in reserva.habitaciones.all %}
+        {{ h.numero }} ({{ h.tipo }})<br>
+      {% endfor %}
+    </td>
+    <td>
+      <a href="">Cambiar Estado</a>
+    </td>
+  </tr>
+  {% empty %}
+  <tr>
+    <td colspan="7">No hay reservas.</td>
+  </tr>
+  {% endfor %}
+</table>
+{% endblock %}

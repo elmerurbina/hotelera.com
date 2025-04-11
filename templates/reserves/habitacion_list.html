@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Listado de Habitaciones del Hotel</h2>
+<a href="{% url 'habitacion_create' %}">Crear nueva habitación</a><br><br>
+
+<table border="1">
+  <tr>
+    <th>Número</th>
+    <th>Tipo</th>
+    <th>Descripción</th>
+    <th>Precio por Noche</th>
+    <th>Estado</th>
+    <th>Acciones</th>
+  </tr>
+  {% for habitacion in habitaciones %}
+  <tr>
+    <td>{{ habitacion.numero }}</td>
+    <td>{{ habitacion.tipo }}</td>
+    <td>{{ habitacion.descripcion }}</td>
+    <td>${{ habitacion.precio_noche }}</td>
+    <td>{{ habitacion.estado }}</td>
+    <td>
+      <a href="{% url 'habitacion_edit' habitacion.id %}">Editar</a>
+    </td>
+  </tr>
+  {% empty %}
+  <tr>
+    <td colspan="6">No hay habitaciones registradas.</td>
+  </tr>
+  {% endfor %}
+</table>
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Mis Reservas</h2>
+<ul>
+  {% for reserva in reservas %}
+    <li>
+      Reserva #{{ reserva.id }} - Estado: {{ reserva.estado }} <br>
+      Hotel: {{ reserva.hotel.nombre_hotel }} <br>
+      Check-in: {{ reserva.fecha_checkin }} | Check-out: {{ reserva.fecha_checkout }} <br>
+      Total: ${{ reserva.monto_total }}
+    </li>
+  {% empty %}
+    <p>No tienes reservas registradas.</p>
+  {% endfor %}
+</ul>
+{% endblock %}

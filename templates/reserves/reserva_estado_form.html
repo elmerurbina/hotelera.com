@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Actualizar Estado de la Reserva</h2>
+<form method="post">
+  {% csrf_token %}
+  <p>Reserva actual: {{ reserva }}</p>
+  <label for="estado">Nuevo estado:</label>
+  <select name="estado">
+    <option value="pendiente" {% if reserva.estado == "pendiente" %}selected{% endif %}>Pendiente</option>
+    <option value="confirmada" {% if reserva.estado == "confirmada" %}selected{% endif %}>Confirmada</option>
+    <option value="cancelada" {% if reserva.estado == "cancelada" %}selected{% endif %}>Cancelada</option>
+    <option value="finalizada" {% if reserva.estado == "finalizada" %}selected{% endif %}>Finalizada</option>
+  </select><br>
+
+  <button type="submit">Actualizar Estado</button>
+</form>
+{% endblock %}

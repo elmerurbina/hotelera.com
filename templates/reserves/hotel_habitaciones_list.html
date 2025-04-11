@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Habitaciones Disponibles</h2>
+<ul>
+  {% for habitacion in habitaciones %}
+    <li>
+      Habitación {{ habitacion.numero }} - {{ habitacion.tipo }} <br>
+      Precio: ${{ habitacion.precio_noche }} <br>
+      <p>{{ habitacion.descripcion }}</p>
+    </li>
+  {% empty %}
+    <p>No hay habitaciones disponibles actualmente.</p>
+  {% endfor %}
+</ul>
+{% endblock %}

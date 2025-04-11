@@ -24,13 +24,21 @@ class HabitacionCreateView(LoginRequiredMixin, EmpleadoRequiredMixin, View):
         return render(request, 'reserves/habitacion_form.html')
 
     def post(self, request):
-        nombre = request.POST.get('nombre')
+        numero = request.POST.get('numero')
         descripcion = request.POST.get('descripcion')
-        direccion = request.POST.get('direccion')
+        precio_noche = request.POST.get('precio_noche')
+        tipo = request.POST.get('tipo')
         estado = request.POST.get('estado', 'disponible')
 
         hotel = request.user.empleado.hotel
-        Habitacion.objects.create(nombre=nombre, descripcion=descripcion, direccion=direccion, estado=estado, hotel=hotel)
+        Habitacion.objects.create(
+            numero=numero,
+            descripcion=descripcion,
+            precio_noche=precio_noche,
+            tipo=tipo,
+            estado=estado,
+            hotel=hotel
+        )
         return redirect('lista-habitaciones')
 
 
@@ -63,18 +71,67 @@ class ReservaUpdateEstadoView(LoginRequiredMixin, EmpleadoRequiredMixin, View):
 
 
 # 📝 Crear reserva como empleado
+from django.contrib.auth.models import User
+from django.core.exceptions import ObjectDoesNotExist
+from django.utils.crypto import get_random_string  # Para crear contraseñas temporales
+
 class ReservaEmpleadoCreateView(LoginRequiredMixin, EmpleadoRequiredMixin, View):
     def get(self, request):
-        return render(request, 'reserves/reserva_empleado_form.html')
+        habitaciones = Habitacion.objects.filter(hotel=request.user.empleado.hotel, estado='disponible')
+        return render(request, 'reserves/reserva_empleado_form.html', {'habitaciones': habitaciones})
 
     def post(self, request):
-        correo_usuario = request.POST.get('correo_usuario')
+        tipo_usuario = request.POST.get('tipo_usuario')
+        fecha_checkin = request.POST.get('fecha_checkin')
+        fecha_checkout = request.POST.get('fecha_checkout')
+        metodo_pago = request.POST.get('metodo_pago')
         habitaciones_ids = request.POST.getlist('habitaciones')
-        usuario = get_object_or_404(User, email=correo_usuario, rol='usuario')
+
+        if tipo_usuario == 'registrado':
+            correo_usuario = request.POST.get('correo_usuario')
+            try:
+                usuario = User.objects.get(email=correo_usuario, rol='usuario')
+            except ObjectDoesNotExist:
+                return render(request, 'reserves/reserva_empleado_form.html', {
+                    'habitaciones': Habitacion.objects.filter(hotel=request.user.empleado.hotel, estado='disponible'),
+                    'error': 'No se encontró un usuario con ese correo.'
+                })
+        else:
+            # Datos para crear un nuevo usuario
+            nombre = request.POST.get('nombre')
+            apellido = request.POST.get('apellido')
+            telefono = request.POST.get('telefono')
+            correo_usuario = request.POST.get('correo_usuario')  # campo oculto o generado automáticamente
+            contraseña_temporal = get_random_string(length=8)
+
+            usuario = User.objects.create_user(
+                username=correo_usuario,
+                email=correo_usuario,
+                first_name=nombre,
+                last_name=apellido,
+                password=contraseña_temporal
+            )
+            usuario.telefono = telefono  # si tienes este campo personalizado
+            usuario.rol = 'usuario'
+            usuario.save()
+
         hotel = request.user.empleado.hotel
         empleado = request.user.empleado
 
-        reserva = Reserva.objects.create(usuario=usuario, hotel=hotel, empleado=empleado)
+        monto_total = 0
+        for habitacion_id in habitaciones_ids:
+            habitacion = get_object_or_404(Habitacion, id=habitacion_id)
+            monto_total += habitacion.precio_noche
+
+        reserva = Reserva.objects.create(
+            usuario=usuario,
+            hotel=hotel,
+            empleado=empleado,
+            fecha_checkin=fecha_checkin,
+            fecha_checkout=fecha_checkout,
+            metodo_pago=metodo_pago,
+            monto_total=monto_total
+        )
 
         for habitacion_id in habitaciones_ids:
             habitacion = get_object_or_404(Habitacion, id=habitacion_id)
@@ -96,7 +153,7 @@ class ReservaUsuarioCreateView(LoginRequiredMixin, UserPassesTestMixin, View):
         return self.request.user.rol == 'usuario'
 
     def get(self, request):
-        return render(request, 'reserves/reserva_form.html')
+        return render(request, 'reserves/reserva_estado_form.html')
 
     def post(self, request):
         hotel_id = request.POST.get('hotel_id')
