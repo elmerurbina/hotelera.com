@@ -1,9 +1,12 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.crypto import get_random_string
+from django.utils.decorators import method_decorator
 from django.views import View
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.urls import reverse_lazy
+from django.views.decorators.clickjacking import xframe_options_exempt
+
 from .models import Habitacion, Reserva, ReservaHabitacion
 from services.profiles.models import User, Empleado
 import io
@@ -11,7 +14,8 @@ import base64
 import matplotlib.pyplot as plt
 from django.utils.timezone import now
 from django.db.models import Sum, Count
-from django.views.generic import TemplateView
+from django.views.generic import TemplateView, UpdateView
+
 
 # Mixin para verificar si el usuario es empleado
 class EmpleadoRequiredMixin(UserPassesTestMixin):
@@ -74,18 +78,12 @@ class ReservaListEmpleadoView(LoginRequiredMixin, EmpleadoRequiredMixin, View):
 
 
 # 🔁 Cambiar estado de una reserva
-class ReservaUpdateEstadoView(LoginRequiredMixin, EmpleadoRequiredMixin, View):
-    def get(self, request, pk):
-        reserva = get_object_or_404(Reserva, pk=pk)
-        return render(request, 'reserves/reserva_estado_form.html', {'reserva': reserva})
-
-    def post(self, request, pk):
-        reserva = get_object_or_404(Reserva, pk=pk)
-        nuevo_estado = request.POST.get('estado')
-        reserva.estado = nuevo_estado
-        reserva.save()
-        return redirect('lista-reservas-empleado')
-
+@method_decorator(xframe_options_exempt, name='dispatch')
+class ReservaUpdateEstadoView(UpdateView):
+    model = Reserva
+    fields = ['estado']  # Solo el campo que quieres editar
+    template_name = 'reserves/reserva_estado_form.html'
+    success_url = reverse_lazy('lista-reservas-empleado')
 
 # 📝 Crear reserva como empleado
 class ReservaEmpleadoCreateView(LoginRequiredMixin, EmpleadoRequiredMixin, View):

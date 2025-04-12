@@ -13,6 +13,7 @@ urlpatterns = [
     path('habitaciones/', HabitacionListView.as_view(), name='lista-habitaciones'),
 
     path('reservas/', ReservaListEmpleadoView.as_view(), name='lista-reservas-empleado'),
+    path('reservas/<int:pk>/cambiar-estado/', ReservaUpdateEstadoView.as_view(), name='cambiar-estado-reserva'),
     path('reservas/estado/<int:pk>/', ReservaUpdateEstadoView.as_view(), name='actualizar-estado-reserva'),
     path('reservas/crear/', ReservaEmpleadoCreateView.as_view(), name='crear-reserva-empleado'),
 

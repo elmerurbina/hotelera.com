@@ -26,7 +26,7 @@
         {% endfor %}
       </td>
       <td>
-        <a href="">Cambiar Estado</a>
+        <a href="{% url 'cambiar-estado-reserva' item.reserva.id %}" onclick="openModal(event, this.href)">Cambiar Estado</a>
       </td>
     </tr>
   {% empty %}
@@ -35,5 +35,26 @@
     </tr>
   {% endfor %}
 </table>
+
+<!-- Modal -->
+<div id="estadoModal" style="display:none; position:fixed; top:5%; left:10%; width:80%; height:90%; background:#fff; border:2px solid #333; z-index:1000;">
+  <div style="text-align:right; background:#f2f2f2; padding:10px;">
+    <button onclick="closeModal()">Cerrar</button>
+  </div>
+  <iframe id="estadoIframe" style="width:100%; height:90%; border:none;"></iframe>
+</div>
+
+<script>
+  function openModal(event, url) {
+    event.preventDefault();
+    document.getElementById("estadoModal").style.display = "block";
+    document.getElementById("estadoIframe").src = url;
+  }
+
+  function closeModal() {
+    document.getElementById("estadoModal").style.display = "none";
+    document.getElementById("estadoIframe").src = "";
+  }
+</script>
 
 {% endblock %}
