@@ -1,4 +1,5 @@
 from django.core.exceptions import ObjectDoesNotExist
+from django.db.models.functions import TruncMonth
 from django.utils.crypto import get_random_string
 from django.utils.decorators import method_decorator
 from django.views import View
@@ -204,29 +205,72 @@ class ReporteContableView(TemplateView):
 
         # Obtener reservas finalizadas
         reservas_finalizadas = Reserva.objects.filter(estado='finalizada')
-        total_ingresos = reservas_finalizadas.aggregate(Sum('monto_total'))['monto_total__sum'] or 0
+        total_ingresos = float(reservas_finalizadas.aggregate(Sum('monto_total'))['monto_total__sum'] or 0)
         promedio_ventas = round(total_ingresos / 30, 2)
 
-        # Distribución de reservas por estado
+        # === Gráfico de pastel: distribución por estado ===
         distribucion = Reserva.objects.values('estado').annotate(total=Count('id'))
         labels = [d['estado'].capitalize() for d in distribucion]
         sizes = [d['total'] for d in distribucion]
 
-        # Crear gráfico de pastel
-        fig, ax = plt.subplots()
-        ax.pie(sizes, labels=labels, autopct='%1.1f%%', startangle=90)
-        ax.axis('equal')
+        fig1, ax1 = plt.subplots()
+        ax1.pie(sizes, labels=labels, autopct='%1.1f%%', startangle=90)
+        ax1.axis('equal')
         plt.title('Distribución de Reservas por Estado')
 
-        # Convertir gráfico a base64
-        buf = io.BytesIO()
-        plt.savefig(buf, format='png')
-        buf.seek(0)
-        image_base64 = base64.b64encode(buf.read()).decode('utf-8')
-        buf.close()
+        buf1 = io.BytesIO()
+        plt.savefig(buf1, format='png')
+        buf1.seek(0)
+        image_base64_1 = base64.b64encode(buf1.read()).decode('utf-8')
+        buf1.close()
 
+        # === Gráfico de barras: ingresos por mes ===
+        ventas_mensuales = (
+            reservas_finalizadas
+            .annotate(mes=TruncMonth('fecha_reserva'))
+            .values('mes')
+            .annotate(total=Sum('monto_total'))
+            .order_by('mes')
+        )
+
+        meses = [v['mes'].strftime('%b %Y') for v in ventas_mensuales]
+        ingresos = [float(v['total']) for v in ventas_mensuales]  # Convertir a float
+
+        if ingresos:
+            max_ingreso = float(max(ingresos))  # Convertir a float
+            min_ingreso = float(min(ingresos))  # Convertir a float
+            rango = max_ingreso - min_ingreso
+            umbral_alto = min_ingreso + 0.66 * rango
+            umbral_medio = min_ingreso + 0.33 * rango
+
+            colores = []
+            for ingreso in ingresos:
+                if ingreso >= umbral_alto:
+                    colores.append('blue')  # Alto
+                elif ingreso >= umbral_medio:
+                    colores.append('orange')  # Medio
+                else:
+                    colores.append('red')  # Bajo
+        else:
+            colores = ['gray'] * len(meses)
+
+        fig2, ax2 = plt.subplots()
+        ax2.bar(meses, ingresos, color=colores, width=0.1)
+        plt.xticks(rotation=45, ha='right')
+        plt.ylabel('Ingresos ($)')
+        plt.title('Ingresos por Mes')
+        plt.tight_layout()
+
+        buf2 = io.BytesIO()
+        plt.savefig(buf2, format='png')
+        buf2.seek(0)
+        image_base64_2 = base64.b64encode(buf2.read()).decode('utf-8')
+        buf2.close()
+
+        # Enviar imágenes al contexto
         context['total_ingresos'] = total_ingresos
         context['promedio_ventas'] = promedio_ventas
-        context['grafico_base64'] = image_base64
+        context['grafico_base64'] = image_base64_1
+        context['grafico_barras_base64'] = image_base64_2
 
         return context

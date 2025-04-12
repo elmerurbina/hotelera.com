@@ -12,8 +12,13 @@
     <strong>Promedio de ventas diario (30 días):</strong> ${{ promedio_ventas }}
 </div>
 
-<h3>📈 Distribución de Reservas</h3>
-<img src="data:image/png;base64,{{ grafico_base64 }}" alt="Gráfico de pastel" class="img-fluid"/>
+    <a href="{% url 'reserves-inicio' %}" class="btn btn-secondary mt-3">⬅ Volver al Panel</a>
+    <br>
+    <h3>📈 Distribución de Reservas</h3>
+    <img src="data:image/png;base64,{{ grafico_base64 }}" alt="Gráfico de pastel" class="img-fluid"/>
 
-<a href="{% url 'reserves-inicio' %}" class="btn btn-secondary mt-3">⬅ Volver al Panel</a>
+    <h3>Ingresos por Mes</h3>
+    <img src="data:image/png;base64,{{ grafico_barras_base64 }}" alt="Gráfico de barras">
+
+
 {% endblock %}
