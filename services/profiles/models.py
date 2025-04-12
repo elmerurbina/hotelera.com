@@ -6,6 +6,7 @@ class User(AbstractUser):
     ROL_CHOICES = (
         ('usuario', 'Usuario Particular'),
         ('hotel', 'Hotel'),
+        ('empleado', 'Empleado'),
     )
 
     rol = models.CharField(max_length=10, choices=ROL_CHOICES, default='usuario')  # Valor por defecto

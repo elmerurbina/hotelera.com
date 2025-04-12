@@ -2,35 +2,39 @@
 {% block title %}Crear Reserva para Usuario{% endblock %}
 
 {% block content %}
-    <h2>Crear Reserva</h2>
-    {% if messages %}
-        <div class="alert-container">
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags }}" role="alert">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        </div>
-    {% endif %}
+<h2>Crear Reserva</h2>
 
-    {% if error %}
-        <div class="alert alert-danger">
-            {{ error }}
-        </div>
-    {% endif %}
+{% if messages %}
+  <div class="alert-container">
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }}" role="alert">
+        {{ message }}
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
+
+{% if error %}
+  <div class="alert alert-danger">
+    {{ error }}
+  </div>
+{% endif %}
+
 <form method="post">
   {% csrf_token %}
-  
-  <!-- Paso 1: Buscar o registrar usuario -->
+
+  <!-- Paso 1: Tipo de usuario -->
   <label>¿El usuario ya está registrado?</label><br>
   <input type="radio" name="tipo_usuario" value="registrado" checked onchange="toggleCamposUsuario()"> Sí<br>
   <input type="radio" name="tipo_usuario" value="nuevo" onchange="toggleCamposUsuario()"> No<br><br>
 
+  <!-- Campo correo, siempre con el mismo name -->
   <div id="campo-correo">
     <label>Correo del usuario:</label>
     <input type="email" name="correo_usuario" required><br>
   </div>
 
+  <!-- Campos adicionales si es nuevo usuario -->
   <div id="campos-nuevo-usuario" style="display: none;">
     <label>Nombre:</label>
     <input type="text" name="nombre"><br>
@@ -40,9 +44,6 @@
 
     <label>Teléfono:</label>
     <input type="text" name="telefono"><br>
-
-    <label>Correo:</label>
-    <input type="email" name="nuevo_correo"><br>
   </div>
 
   <!-- Paso 2: Datos de la reserva -->
@@ -70,15 +71,18 @@
   function toggleCamposUsuario() {
     const tipo = document.querySelector('input[name="tipo_usuario"]:checked').value;
     const camposNuevo = document.getElementById("campos-nuevo-usuario");
-    const campoCorreo = document.getElementById("campo-correo");
+    const correoInput = document.querySelector('input[name="correo_usuario"]');
 
     if (tipo === "nuevo") {
       camposNuevo.style.display = "block";
-      campoCorreo.style.display = "none";
+      correoInput.required = true;
     } else {
       camposNuevo.style.display = "none";
-      campoCorreo.style.display = "block";
+      correoInput.required = true;
     }
   }
+
+  // Ejecutar al cargar por si ya está seleccionado “nuevo”
+  window.addEventListener('DOMContentLoaded', toggleCamposUsuario);
 </script>
 {% endblock %}

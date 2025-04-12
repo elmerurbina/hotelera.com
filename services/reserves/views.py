@@ -114,7 +114,7 @@ class ReservaEmpleadoCreateView(LoginRequiredMixin, EmpleadoRequiredMixin, View)
             nombre = request.POST.get('nombre')
             apellido = request.POST.get('apellido')
             telefono = request.POST.get('telefono')
-            correo_usuario = request.POST.get('correo_usuario')  # campo oculto o generado automáticamente
+            correo_usuario = request.POST.get('correo_usuario') or request.POST.get('nuevo_correo')
             contraseña_temporal = get_random_string(length=8)
 
             # Crea un nuevo usuario utilizando tu modelo personalizado

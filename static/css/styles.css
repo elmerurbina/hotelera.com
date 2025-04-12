@@ -109,6 +109,30 @@ th {
   background-color: #f2f2f2;
 }
 
+.submenu {
+  background-color: #f8f9fa;
+  padding: 10px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #ddd;
+}
+.submenu ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: 15px;
+}
+.submenu li {
+  display: inline;
+}
+.submenu a {
+  text-decoration: none;
+  color: #007bff;
+  font-weight: bold;
+}
+.submenu a:hover {
+  text-decoration: underline;
+}
 
 /* Footer */
 footer {

@@ -71,7 +71,7 @@ class RegistroEmpleadoView(View):
             username=username,
             email=email,
             password=password,
-            rol='usuario'  # o 'empleado' si luego defines ese rol
+            rol='empleado'  # o 'empleado' si luego defines ese rol
         )
 
         Empleado.objects.create(user=empleado_user, hotel=request.user)
