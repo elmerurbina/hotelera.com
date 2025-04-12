@@ -108,6 +108,8 @@ FROM reserva r
 JOIN usuario u ON r.id_usuario = u.id_usuario
 JOIN hotel h ON r.id_hotel = h.id_hotel;
 
+
+-- Sesion de Triggers Inicio
 DELIMITER //
 CREATE TRIGGER before_insert_reserva
 BEFORE INSERT ON reserva

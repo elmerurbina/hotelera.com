@@ -6,7 +6,12 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.urls import reverse_lazy
 from .models import Habitacion, Reserva, ReservaHabitacion
 from services.profiles.models import User, Empleado
-
+import io
+import base64
+import matplotlib.pyplot as plt
+from django.utils.timezone import now
+from django.db.models import Sum, Count
+from django.views.generic import TemplateView
 
 # Mixin para verificar si el usuario es empleado
 class EmpleadoRequiredMixin(UserPassesTestMixin):
@@ -191,3 +196,39 @@ class MisReservasListView(LoginRequiredMixin, UserPassesTestMixin, View):
     def get(self, request):
         reservas = Reserva.objects.filter(usuario=request.user)
         return render(request, 'reserves/mis_reservas.html', {'reservas': reservas})
+
+
+class ReporteContableView(TemplateView):
+    template_name = 'reserves/reporte_contable.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        # Obtener reservas finalizadas
+        reservas_finalizadas = Reserva.objects.filter(estado='finalizada')
+        total_ingresos = reservas_finalizadas.aggregate(Sum('monto_total'))['monto_total__sum'] or 0
+        promedio_ventas = round(total_ingresos / 30, 2)
+
+        # Distribución de reservas por estado
+        distribucion = Reserva.objects.values('estado').annotate(total=Count('id'))
+        labels = [d['estado'].capitalize() for d in distribucion]
+        sizes = [d['total'] for d in distribucion]
+
+        # Crear gráfico de pastel
+        fig, ax = plt.subplots()
+        ax.pie(sizes, labels=labels, autopct='%1.1f%%', startangle=90)
+        ax.axis('equal')
+        plt.title('Distribución de Reservas por Estado')
+
+        # Convertir gráfico a base64
+        buf = io.BytesIO()
+        plt.savefig(buf, format='png')
+        buf.seek(0)
+        image_base64 = base64.b64encode(buf.read()).decode('utf-8')
+        buf.close()
+
+        context['total_ingresos'] = total_ingresos
+        context['promedio_ventas'] = promedio_ventas
+        context['grafico_base64'] = image_base64
+
+        return context
