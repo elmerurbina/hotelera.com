@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/payment_styles.css' %}">
+
+<div class="reserva-container">
+  <h2>Realizar Reserva</h2>
+
+  <form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <!-- Sección 1: Datos personales -->
+    <div id="form-section-1">
+      <label for="fecha_checkin">Fecha Check-In</label>
+      <input type="date" name="fecha_checkin" required>
+
+      <label for="fecha_checkout">Fecha Check-Out</label>
+      <input type="date" name="fecha_checkout" required>
+
+      <label for="cedula">Cédula de identidad</label>
+      <input type="text" name="cedula" placeholder="cedula con guiones" required>
+
+      <label for="telefono">Teléfono</label>
+      <input type="text" name="telefono" placeholder="ej: +50512345678" required>
+
+      <button type="button" class="btn" onclick="mostrarPago()">Siguiente</button>
+    </div>
+
+    <!-- Sección 2: Método de pago -->
+    <div id="form-section-2" style="display: none;">
+      <label for="metodo_pago">Método de pago</label>
+      <select name="metodo_pago" id="metodo_pago" onchange="toggleComprobante()" required>
+        <option value="">-- Selecciona un método --</option>
+        <option value="deposito">Depósito Bancario</option>
+        <option value="caja">Pagar en caja</option>
+      </select>
+
+      <div id="deposito-section" class="deposit-info" style="display: none;">
+        <p><strong>Depósito Bancario:</strong> Realiza tu depósito a las siguientes cuentas:</p>
+        <img src="{% static 'media/images/bank_data.png' %}" alt="Cuentas bancarias" class="image-deposit">
+
+        <label for="archivo_comprobante">Sube tu comprobante</label>
+        <input type="file" name="archivo_comprobante" accept=".jpg,.png,.pdf">
+      </div>
+
+      <button type="submit" id="btnGenerarOrden" class="btn" disabled>Generar orden</button>
+    </div>
+  </form>
+</div>
+
+<script>
+  function mostrarPago() {
+    document.getElementById('form-section-1').style.display = 'none';
+    document.getElementById('form-section-2').style.display = 'block';
+  }
+
+  function toggleComprobante() {
+    const metodo = document.getElementById('metodo_pago').value;
+    const depositoSection = document.getElementById('deposito-section');
+    const boton = document.getElementById('btnGenerarOrden');
+
+    if (metodo === 'deposito') {
+      depositoSection.style.display = 'block';
+      boton.textContent = 'Comprobar pago';
+      boton.disabled = false;
+    } else if (metodo === 'caja') {
+      depositoSection.style.display = 'none';
+      boton.textContent = 'Generar orden';
+      boton.disabled = false;
+    } else {
+      depositoSection.style.display = 'none';
+      boton.disabled = true;
+    }
+  }
+</script>
+{% endblock %}

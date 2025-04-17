@@ -3,7 +3,7 @@ from .views import (
     HabitacionCreateView, HabitacionListView, ReservaListEmpleadoView,
     ReservaUpdateEstadoView, ReservaEmpleadoCreateView,
     HotelHabitacionesListView, ReservaUsuarioCreateView,
-    MisReservasListView, ReservasInicioView, ReporteContableView
+    MisReservasListView, ReservasInicioView, ReporteContableView, ReservaCreateView
 )
 
 urlpatterns = [
@@ -18,7 +18,8 @@ urlpatterns = [
     path('reservas/crear/', ReservaEmpleadoCreateView.as_view(), name='crear-reserva-empleado'),
 
     path('hotel/<int:hotel_id>/habitaciones/', HotelHabitacionesListView.as_view(), name='hotel-habitaciones'),
-    path('reservar/', ReservaUsuarioCreateView.as_view(), name='crear-reserva-usuario'),
+    path('reservar/', ReservaCreateView.as_view(), name='crear-reserva-usuario'),
     path('mis-reservas/', MisReservasListView.as_view(), name='mis-reservas'),
     path('reporte-contable/', ReporteContableView.as_view(), name='ver-reporte-contable'),
+
 ]

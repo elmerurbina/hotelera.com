@@ -11,13 +11,13 @@ class LoginView(View):
         return render(request, 'auth/login.html')
 
     def post(self, request):
-        email = request.POST.get('email')  # Cambié de 'username' a 'email'
+        email = request.POST.get('email')
         password = request.POST.get('password')
 
-        user = authenticate(request, username=email, password=password)  # Usar email en authenticate
+        user = authenticate(request, username=email, password=password)
         if user:
             login(request, user)
-            return redirect('home')  # Redirige a la página principal después de un login exitoso
+            return redirect('home')
         else:
             return render(request, 'auth/login.html', {'error': 'Credenciales inválidas'})
 
@@ -71,7 +71,7 @@ class RegistroEmpleadoView(View):
             username=username,
             email=email,
             password=password,
-            rol='empleado'  # o 'empleado' si luego defines ese rol
+            rol='empleado'
         )
 
         Empleado.objects.create(user=empleado_user, hotel=request.user)

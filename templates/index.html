@@ -6,6 +6,14 @@
   <h1 class="fw-bold">Bienvenido a Hotelera.com</h1>
   <p class="lead">La mejor plataforma para reservar hoteles fácilmente.</p>
 </div>
+    
+{% if messages %}
+  <ul class="messages">
+    {% for message in messages %}
+      <li class="{{ message.tags }}">{{ message }}</li>
+    {% endfor %}
+  </ul>
+{% endif %}
 
 <section class="mb-4">
   <h2 class="mb-3 text-center">¿En cuál hotel deseas reservar?</h2>
@@ -18,7 +26,7 @@
         <div class="card-body">
           <h5 class="card-title text-primary">Hotel Paraíso</h5>
           <p class="card-text">Ubicado en la playa. Ideal para vacaciones familiares.</p>
-          <a href="#" class="btn btn-outline-primary w-100">Reservar</a>
+          <a href="{% url 'crear-reserva-usuario' %}" class="btn btn-outline-primary w-100">Reservar</a>
         </div>
       </div>
     </div>
@@ -30,7 +38,7 @@
         <div class="card-body">
           <h5 class="card-title text-primary">Hotel Central</h5>
           <p class="card-text">Perfecto para viajes de negocios en el centro.</p>
-          <a href="#" class="btn btn-outline-primary w-100">Reservar</a>
+          <a href="{% url 'crear-reserva-usuario' %}" class="btn btn-outline-primary w-100">Reservar</a>
         </div>
       </div>
     </div>
@@ -42,7 +50,7 @@
         <div class="card-body">
           <h5 class="card-title text-primary">Eco Hotel Montaña</h5>
           <p class="card-text">Experiencia eco-turística rodeada de naturaleza.</p>
-          <a href="#" class="btn btn-outline-primary w-100">Reservar</a>
+          <a href="{% url 'crear-reserva-usuario' %}" class="btn btn-outline-primary w-100">Reservar</a>
         </div>
       </div>
     </div>
@@ -54,7 +62,7 @@
         <div class="card-body">
           <h5 class="card-title text-primary">Luxury Suites</h5>
           <p class="card-text">Lujo, comodidad y servicios premium garantizados.</p>
-          <a href="#" class="btn btn-outline-primary w-100">Reservar</a>
+          <a href="{% url 'crear-reserva-usuario' %}" class="btn btn-outline-primary w-100">Reservar</a>
         </div>
       </div>
     </div>

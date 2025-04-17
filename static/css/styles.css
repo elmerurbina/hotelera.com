@@ -134,6 +134,22 @@ th {
   text-decoration: underline;
 }
 
+.messages {
+  list-style: none;
+  padding: 0;
+  margin-top: 15px;
+}
+
+.messages li {
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 5px;
+}
+
+.messages li.success { background-color: #d4edda; color: #155724; }
+.messages li.error { background-color: #f8d7da; color: #721c24; }
+.messages li.info { background-color: #d1ecf1; color: #0c5460; }
+
 /* Footer */
 footer {
   background-color: var(--color-primary);

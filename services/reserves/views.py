@@ -1,3 +1,4 @@
+from django.core.checks import messages
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models.functions import TruncMonth
 from django.utils.crypto import get_random_string
@@ -8,14 +9,14 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.urls import reverse_lazy
 from django.views.decorators.clickjacking import xframe_options_exempt
 
-from .models import Habitacion, Reserva, ReservaHabitacion
+from .models import Habitacion, Reserva, ReservaHabitacion, ComprobantePago
 from services.profiles.models import User, Empleado
 import io
 import base64
 import matplotlib.pyplot as plt
 from django.utils.timezone import now
 from django.db.models import Sum, Count
-from django.views.generic import TemplateView, UpdateView
+from django.views.generic import TemplateView, UpdateView, CreateView
 
 
 # Mixin para verificar si el usuario es empleado
@@ -197,19 +198,31 @@ class MisReservasListView(LoginRequiredMixin, UserPassesTestMixin, View):
         return render(request, 'reserves/mis_reservas.html', {'reservas': reservas})
 
 
-class ReporteContableView(TemplateView):
+class EmpleadoRequiredMixin(UserPassesTestMixin):
+    def test_func(self):
+        return hasattr(self.request.user, 'empleado')
+
+class ReporteContableView(LoginRequiredMixin, EmpleadoRequiredMixin, TemplateView):
     template_name = 'reserves/reporte_contable.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        # Obtener reservas finalizadas
-        reservas_finalizadas = Reserva.objects.filter(estado='finalizada')
+        # Obtener el hotel del empleado que accede
+        hotel = self.request.user.empleado.hotel
+
+        # Filtrar solo las reservas finalizadas de ese hotel
+        reservas_finalizadas = Reserva.objects.filter(estado='finalizada', hotel=hotel)
+
+        # Calcular ingresos totales y promedio de ventas (asumiendo último mes o 30 días)
         total_ingresos = float(reservas_finalizadas.aggregate(Sum('monto_total'))['monto_total__sum'] or 0)
         promedio_ventas = round(total_ingresos / 30, 2)
 
-        # === Gráfico de pastel: distribución por estado ===
-        distribucion = Reserva.objects.values('estado').annotate(total=Count('id'))
+        context['total_ingresos'] = total_ingresos
+        context['promedio_ventas'] = promedio_ventas
+
+        # === Gráfico de pastel: distribución por estado (solo del hotel del empleado) ===
+        distribucion = Reserva.objects.filter(hotel=hotel).values('estado').annotate(total=Count('id'))
         labels = [d['estado'].capitalize() for d in distribucion]
         sizes = [d['total'] for d in distribucion]
 
@@ -220,11 +233,13 @@ class ReporteContableView(TemplateView):
 
         buf1 = io.BytesIO()
         plt.savefig(buf1, format='png')
+        plt.close(fig1)
         buf1.seek(0)
-        image_base64_1 = base64.b64encode(buf1.read()).decode('utf-8')
-        buf1.close()
+        image_base64_1 = base64.b64encode(buf1.getvalue()).decode('utf-8')
 
-        # === Gráfico de barras: ingresos por mes ===
+        context['grafico_estado_base64'] = image_base64_1
+
+        # === Gráfico de barras: ingresos por mes (solo del hotel del empleado) ===
         ventas_mensuales = (
             reservas_finalizadas
             .annotate(mes=TruncMonth('fecha_reserva'))
@@ -234,11 +249,11 @@ class ReporteContableView(TemplateView):
         )
 
         meses = [v['mes'].strftime('%b %Y') for v in ventas_mensuales]
-        ingresos = [float(v['total']) for v in ventas_mensuales]  # Convertir a float
+        ingresos = [float(v['total']) for v in ventas_mensuales]
 
         if ingresos:
-            max_ingreso = float(max(ingresos))  # Convertir a float
-            min_ingreso = float(min(ingresos))  # Convertir a float
+            max_ingreso = float(max(ingresos))
+            min_ingreso = float(min(ingresos))
             rango = max_ingreso - min_ingreso
             umbral_alto = min_ingreso + 0.66 * rango
             umbral_medio = min_ingreso + 0.33 * rango
@@ -263,14 +278,34 @@ class ReporteContableView(TemplateView):
 
         buf2 = io.BytesIO()
         plt.savefig(buf2, format='png')
+        plt.close(fig2)
         buf2.seek(0)
-        image_base64_2 = base64.b64encode(buf2.read()).decode('utf-8')
-        buf2.close()
+        image_base64_2 = base64.b64encode(buf2.getvalue()).decode('utf-8')
 
-        # Enviar imágenes al contexto
-        context['total_ingresos'] = total_ingresos
-        context['promedio_ventas'] = promedio_ventas
-        context['grafico_base64'] = image_base64_1
         context['grafico_barras_base64'] = image_base64_2
 
         return context
+
+
+class ReservaCreateView(CreateView):
+    model = Reserva
+    template_name = 'reserves/reserva_usuario.html'
+    fields = ['fecha_checkin', 'fecha_checkout', 'correo', 'telefono', 'metodo_pago']
+
+    def form_valid(self, form):
+        reserva = form.save(commit=False)
+        reserva.usuario = self.request.user if self.request.user.is_authenticated else None
+        reserva.hotel = ... # Puedes asignar el hotel aquí según el flujo
+        reserva.monto_total = 0  # Lógica real de cálculo aquí
+        reserva.save()
+
+        # Manejo del comprobante si viene del POST
+        comprobante = self.request.FILES.get('archivo_comprobante')
+        if form.cleaned_data.get('metodo_pago') == 'deposito' and comprobante:
+            ComprobantePago.objects.create(
+                reserva=reserva,
+                archivo_comprobante=comprobante
+            )
+
+        messages.success(self.request, "Reserva creada exitosamente.")
+        return redirect('inicio')  # Reemplaza con tu URL real
