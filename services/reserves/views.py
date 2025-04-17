@@ -1,4 +1,6 @@
-from django.core.checks import messages
+import re
+
+from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models.functions import TruncMonth
 from django.utils.crypto import get_random_string
@@ -88,72 +90,67 @@ class ReservaUpdateEstadoView(UpdateView):
     success_url = reverse_lazy('lista-reservas-empleado')
 
 # 📝 Crear reserva como empleado
-class ReservaEmpleadoCreateView(LoginRequiredMixin, EmpleadoRequiredMixin, View):
+class ReservaEmpleadoCreateView(View):
     def get(self, request):
+        # Filtra las habitaciones disponibles para el hotel del empleado
         habitaciones = Habitacion.objects.filter(hotel=request.user.empleado.hotel, estado='disponible')
         return render(request, 'reserves/reserva_empleado_form.html', {'habitaciones': habitaciones})
 
     def post(self, request):
-        tipo_usuario = request.POST.get('tipo_usuario')
-        fecha_checkin = request.POST.get('fecha_checkin')
-        fecha_checkout = request.POST.get('fecha_checkout')
-        metodo_pago = request.POST.get('metodo_pago')
-        habitaciones_ids = request.POST.getlist('habitaciones')
+        tipo_usuario = request.POST.get("tipo_usuario")
+        cedula = request.POST.get("cedula_usuario")
+        cedula_normalizada = re.sub(r"[-\s]", "", cedula)  # Normaliza la cédula eliminando guiones y espacios
 
-        if tipo_usuario == 'registrado':
-            correo_usuario = request.POST.get('correo_usuario')
-            try:
-                # Usa User desde el modelo de perfiles
-                usuario = User.objects.get(email=correo_usuario, rol='usuario')
-            except ObjectDoesNotExist:
+        # Verifica si el usuario ya existe por cédula
+        usuario = User.objects.filter(numero_cedula=cedula_normalizada, rol="usuario").first()
+
+        if tipo_usuario == "registrado":
+            if not usuario:
                 return render(request, 'reserves/reserva_empleado_form.html', {
-                    'habitaciones': Habitacion.objects.filter(hotel=request.user.empleado.hotel, estado='disponible'),
-                    'error': 'No se encontró un usuario con ese correo.'
+                    'habitaciones': Habitacion.objects.filter(hotel=request.user.empleado.hotel),
+                    'error': "Usuario no encontrado con esa cédula."
                 })
         else:
-            # Datos para crear un nuevo usuario
-            nombre = request.POST.get('nombre')
-            apellido = request.POST.get('apellido')
-            telefono = request.POST.get('telefono')
-            correo_usuario = request.POST.get('correo_usuario') or request.POST.get('nuevo_correo')
-            contraseña_temporal = get_random_string(length=8)
-
-            # Crea un nuevo usuario utilizando tu modelo personalizado
+            # Crear nuevo usuario
             usuario = User.objects.create_user(
-                username=correo_usuario,
-                email=correo_usuario,
-                first_name=nombre,
-                last_name=apellido,
-                password=contraseña_temporal
+                username=f"user_{cedula_normalizada}",
+                first_name=request.POST.get("nombre"),
+                last_name=request.POST.get("apellido"),
+                email=request.POST.get("correo_usuario"),
+                telefono=request.POST.get("telefono"),
+                numero_cedula=cedula_normalizada,
+                rol="usuario",
+                password="12345678"  # Puedes usar un generador aleatorio o un valor por defecto
             )
-            usuario.telefono = telefono  # si tienes este campo personalizado
-            usuario.rol = 'usuario'
-            usuario.save()
 
-        hotel = request.user.empleado.hotel
-        empleado = request.user.empleado
-
-        monto_total = 0
-        for habitacion_id in habitaciones_ids:
-            habitacion = get_object_or_404(Habitacion, id=habitacion_id)
-            monto_total += habitacion.precio_noche
-
+        # Crear la reserva
         reserva = Reserva.objects.create(
+            fecha_checkin=request.POST.get("fecha_checkin"),
+            fecha_checkout=request.POST.get("fecha_checkout"),
+            metodo_pago=request.POST.get("metodo_pago"),
             usuario=usuario,
-            hotel=hotel,
-            empleado=empleado,
-            fecha_checkin=fecha_checkin,
-            fecha_checkout=fecha_checkout,
-            metodo_pago=metodo_pago,
-            monto_total=monto_total
+            empleado=request.user.empleado,
+            hotel=request.user.empleado.hotel,
+            monto_total=0  # Se calculará después
         )
 
+        # Obtener las habitaciones seleccionadas
+        habitaciones_ids = request.POST.getlist("habitaciones")
+        total = 0
         for habitacion_id in habitaciones_ids:
-            habitacion = get_object_or_404(Habitacion, id=habitacion_id)
+            habitacion = Habitacion.objects.get(id=habitacion_id)
+            print(f"Habitación: {habitacion.id}, Precio: {habitacion.precio_noche}")
             ReservaHabitacion.objects.create(reserva=reserva, habitacion=habitacion)
+            total += habitacion.precio_noche
 
-        return redirect('lista-reservas-empleado')
+        print(f"Monto total calculado: {total}")
+        # Actualizar el monto total de la reserva
+        reserva.monto_total = total
+        reserva.save()
 
+        # Mostrar un mensaje de éxito
+        messages.success(request, "Reserva creada correctamente.")
+        return redirect("lista-reservas-empleado")
 
 # 🌐 Ver habitaciones disponibles para un hotel (usuarios)
 class HotelHabitacionesListView(View):

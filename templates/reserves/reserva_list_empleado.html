@@ -2,21 +2,30 @@
 {% block content %}
 <h2>Reservas de mi Hotel</h2>
 <a href="{% url 'crear-reserva-empleado' %}">Crear nueva reserva</a><br><br>
-
+{% if messages %}
+  <div class="alert-container">
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }}" role="alert">
+        {{ message }}
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
 <table border="1">
   <tr>
-    <th>Reserva</th>
-    <th>Usuario</th>
-    <th>Estado</th>
-    <th>Check-in</th>
-    <th>Check-out</th>
-    <th>Habitaciones</th>
-    <th>Acciones</th>
+      <th>Reserva</th>
+      <th>Usuario</th>
+      <th>Estado</th>
+      <th>Check-in</th>
+      <th>Check-out</th>
+      <th>Habitaciones</th>
+      <th>Monto Total</th>
+      <th>Acciones</th>
   </tr>
   {% for item in reservas_con_habitaciones %}
     <tr>
       <td>#{{ item.reserva.id }}</td>
-      <td>{{ item.reserva.usuario.email }}</td>
+      <td>{{ item.reserva.usuario.numero_cedula }}</td>
       <td>{{ item.reserva.estado }}</td>
       <td>{{ item.reserva.fecha_checkin }}</td>
       <td>{{ item.reserva.fecha_checkout }}</td>
@@ -25,6 +34,7 @@
           {{ h.habitacion.numero }} ({{ h.habitacion.tipo }})<br>
         {% endfor %}
       </td>
+     <td>{{ item.reserva.monto_total }} </td>
       <td>
         <a href="{% url 'cambiar-estado-reserva' item.reserva.id %}" onclick="openModal(event, this.href)">Cambiar Estado</a>
       </td>
