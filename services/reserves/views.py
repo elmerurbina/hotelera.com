@@ -191,6 +191,16 @@ class HotelHabitacionesListView(View):
 
 # 📆 Crear reserva como usuario
 class ReservaUsuarioCreateView(View):
+    # Maneja la solicitud GET para mostrar el formulario
+    def get(self, request, hotel_id):
+        hotel = get_object_or_404(User, id=hotel_id, rol='hotel')
+        habitaciones = Habitacion.objects.filter(hotel=hotel, estado='disponible')  # Filtra solo las habitaciones disponibles
+        return render(request, 'reserves/reserva_usuario.html', {
+            'hotel': hotel,
+            'habitaciones': habitaciones
+        })
+
+    # Maneja la solicitud POST para crear la reserva
     def post(self, request, hotel_id):
         hotel = get_object_or_404(User, id=hotel_id, rol='hotel')
 
@@ -255,6 +265,10 @@ class ReservaUsuarioCreateView(View):
         reserva.monto_total = total
         reserva.save()
 
+        # Asignar habitaciones a la reserva
+        for habitacion in habitaciones_disponibles:
+            ReservaHabitacion.objects.create(reserva=reserva, habitacion=habitacion)
+
         # Si hay comprobante, guardarlo
         if archivo_comprobante:
             ComprobantePago.objects.create(reserva=reserva, archivo=archivo_comprobante)
@@ -265,9 +279,8 @@ class ReservaUsuarioCreateView(View):
 
         # Imprimir los detalles solicitados
         p.drawString(100, 750, f"Número de cédula del usuario: {usuario.numero_cedula}")
-        p.drawString(100, 730, f"Nombre del hotel: {hotel.first_name} {hotel.last_name}")  # Nombre del hotel
-        p.drawString(100, 710,
-                     f"Número de habitación: {', '.join([str(hab.id) for hab in habitaciones_disponibles])}")  # Número de habitaciones
+        p.drawString(100, 730, f"Nombre del hotel: {hotel.nombre_hotel}")  # Nombre del hotel
+        p.drawString(100, 710, f"Número de habitación: {', '.join([hab.numero for hab in habitaciones_disponibles])}")
         p.drawString(100, 690, f"Check-in: {fecha_checkin} - Check-out: {fecha_checkout}")
         p.drawString(100, 670, f"Total: ${total}")
 
@@ -283,6 +296,7 @@ class ReservaUsuarioCreateView(View):
         response['Content-Disposition'] = 'inline; filename="reserva.pdf"'
 
         return response
+
 
 class MisReservasListView(LoginRequiredMixin, UserPassesTestMixin, View):
     def test_func(self):

@@ -43,7 +43,7 @@
       <label>Seleccionar habitaciones:</label><br>
       {% for habitacion in habitaciones %}
         <input type="checkbox" name="habitaciones" value="{{ habitacion.id }}">
-        Habitación {{ habitacion.numero }} - ${{ habitacion.precio_noche }}<br>
+        Habitación {{ habitacion.numero }} - ${{ habitacion.precio_noche }} - ${{ habitacion.descripcion }}<br>
       {% endfor %}
 
       <button type="button" class="btn" onclick="mostrarPago()">Siguiente</button>
