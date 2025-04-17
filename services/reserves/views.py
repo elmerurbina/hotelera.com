@@ -1,8 +1,12 @@
 import re
+from datetime import datetime
+
+from reportlab.pdfgen import canvas
 from django.db.models import Case, When, Value, IntegerField, Sum, Count
 from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models.functions import TruncMonth
+from django.http import HttpResponse
 from django.utils.crypto import get_random_string
 from django.utils.decorators import method_decorator
 from django.views import View
@@ -10,6 +14,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.urls import reverse_lazy
 from django.views.decorators.clickjacking import xframe_options_exempt
+from reportlab.lib.pagesizes import letter
 
 from .models import Habitacion, Reserva, ReservaHabitacion, ComprobantePago
 from services.profiles.models import User, Empleado
@@ -183,33 +188,102 @@ class HotelHabitacionesListView(View):
         return render(request, 'reserves/hotel_habitaciones_list.html', {'habitaciones': habitaciones})
 
 
+
 # 📆 Crear reserva como usuario
-class ReservaUsuarioCreateView(LoginRequiredMixin, UserPassesTestMixin, View):
-    def test_func(self):
-        return self.request.user.rol == 'usuario'
+class ReservaUsuarioCreateView(View):
+    def post(self, request, hotel_id):
+        hotel = get_object_or_404(User, id=hotel_id, rol='hotel')
 
-    def get(self, request):
-        return render(request, 'reserves/reserva_estado_form.html')
+        # Datos de la reserva
+        fecha_checkin = request.POST.get('fecha_checkin')
+        fecha_checkout = request.POST.get('fecha_checkout')
+        metodo_pago = request.POST.get('metodo_pago')
+        cedula = request.POST.get('cedula_usuario')
+        telefono = request.POST.get('telefono')
+        nombre = request.POST.get('nombre')
+        apellido = request.POST.get('apellido')
+        archivo_comprobante = request.FILES.get('archivo_comprobante')
 
-    def post(self, request):
-        hotel_id = request.POST.get('hotel_id')
+        # Conversión de fechas
+        try:
+            fecha_checkin = datetime.strptime(fecha_checkin, "%Y-%m-%d").date()
+            fecha_checkout = datetime.strptime(fecha_checkout, "%Y-%m-%d").date()
+        except ValueError:
+            messages.error(request, "Formato de fecha inválido.")
+            return redirect(request.path)
+
+        # Crear usuario si no existe
+        cedula_normalizada = re.sub(r"[-\s]", "", cedula)
+        usuario = User.objects.filter(numero_cedula=cedula_normalizada, rol="usuario").first()
+
+        if not usuario:
+            usuario = User.objects.create_user(
+                username=f"user_{cedula_normalizada}",
+                first_name=nombre,
+                last_name=apellido,
+                telefono=telefono,
+                numero_cedula=cedula_normalizada,
+                rol="usuario",
+                password="12345678"
+            )
+
+        # Crear la reserva
         habitaciones_ids = request.POST.getlist('habitaciones')
-        monto_total = request.POST.get('monto_total')
-
-        reserva = Reserva.objects.create(
-            usuario=request.user,
-            hotel_id=hotel_id,
-            monto_total=monto_total
-        )
-
+        habitaciones_disponibles = []
         for habitacion_id in habitaciones_ids:
             habitacion = get_object_or_404(Habitacion, id=habitacion_id)
-            ReservaHabitacion.objects.create(reserva=reserva, habitacion=habitacion)
+            reservas_conflicto = ReservaHabitacion.objects.filter(
+                habitacion=habitacion,
+                reserva__fecha_checkin__lt=fecha_checkout,
+                reserva__fecha_checkout__gt=fecha_checkin
+            )
 
-        return redirect('mis-reservas')
+            if not reservas_conflicto.exists():
+                habitaciones_disponibles.append(habitacion)
 
+        reserva = Reserva.objects.create(
+            fecha_checkin=fecha_checkin,
+            fecha_checkout=fecha_checkout,
+            metodo_pago=metodo_pago,
+            usuario=usuario,
+            hotel=hotel,
+            monto_total=0
+        )
 
-# 👀 Ver mis reservas
+        # Calcular el total
+        total = sum(habitacion.precio_noche for habitacion in habitaciones_disponibles)
+        reserva.monto_total = total
+        reserva.save()
+
+        # Si hay comprobante, guardarlo
+        if archivo_comprobante:
+            ComprobantePago.objects.create(reserva=reserva, archivo=archivo_comprobante)
+
+        # Generar PDF
+        buffer = io.BytesIO()
+        p = canvas.Canvas(buffer, pagesize=letter)
+
+        # Imprimir los detalles solicitados
+        p.drawString(100, 750, f"Número de cédula del usuario: {usuario.numero_cedula}")
+        p.drawString(100, 730, f"Nombre del hotel: {hotel.first_name} {hotel.last_name}")  # Nombre del hotel
+        p.drawString(100, 710,
+                     f"Número de habitación: {', '.join([str(hab.id) for hab in habitaciones_disponibles])}")  # Número de habitaciones
+        p.drawString(100, 690, f"Check-in: {fecha_checkin} - Check-out: {fecha_checkout}")
+        p.drawString(100, 670, f"Total: ${total}")
+
+        p.showPage()
+        p.save()
+
+        buffer.seek(0)
+
+        # Crear respuesta con el PDF
+        response = HttpResponse(buffer, content_type='application/pdf')
+
+        # Establecer un encabezado para abrir el PDF en el navegador
+        response['Content-Disposition'] = 'inline; filename="reserva.pdf"'
+
+        return response
+
 class MisReservasListView(LoginRequiredMixin, UserPassesTestMixin, View):
     def test_func(self):
         return self.request.user.rol == 'usuario'
@@ -308,25 +382,3 @@ class ReporteContableView(LoginRequiredMixin, EmpleadoRequiredMixin, TemplateVie
         return context
 
 
-class ReservaCreateView(CreateView):
-    model = Reserva
-    template_name = 'reserves/reserva_usuario.html'
-    fields = ['fecha_checkin', 'fecha_checkout', 'correo', 'telefono', 'metodo_pago']
-
-    def form_valid(self, form):
-        reserva = form.save(commit=False)
-        reserva.usuario = self.request.user if self.request.user.is_authenticated else None
-        reserva.hotel = ... # Puedes asignar el hotel aquí según el flujo
-        reserva.monto_total = 0  # Lógica real de cálculo aquí
-        reserva.save()
-
-        # Manejo del comprobante si viene del POST
-        comprobante = self.request.FILES.get('archivo_comprobante')
-        if form.cleaned_data.get('metodo_pago') == 'deposito' and comprobante:
-            ComprobantePago.objects.create(
-                reserva=reserva,
-                archivo_comprobante=comprobante
-            )
-
-        messages.success(self.request, "Reserva creada exitosamente.")
-        return redirect('inicio')  # Reemplaza con tu URL real
