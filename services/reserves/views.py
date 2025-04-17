@@ -204,7 +204,6 @@ class ReservaUsuarioCreateView(View):
     def post(self, request, hotel_id):
         hotel = get_object_or_404(User, id=hotel_id, rol='hotel')
 
-        # Datos de la reserva
         fecha_checkin = request.POST.get('fecha_checkin')
         fecha_checkout = request.POST.get('fecha_checkout')
         metodo_pago = request.POST.get('metodo_pago')
@@ -214,7 +213,7 @@ class ReservaUsuarioCreateView(View):
         apellido = request.POST.get('apellido')
         archivo_comprobante = request.FILES.get('archivo_comprobante')
 
-        # Conversión de fechas
+        # Validar fechas
         try:
             fecha_checkin = datetime.strptime(fecha_checkin, "%Y-%m-%d").date()
             fecha_checkout = datetime.strptime(fecha_checkout, "%Y-%m-%d").date()
@@ -222,7 +221,7 @@ class ReservaUsuarioCreateView(View):
             messages.error(request, "Formato de fecha inválido.")
             return redirect(request.path)
 
-        # Crear usuario si no existe
+        # Buscar o crear usuario
         cedula_normalizada = re.sub(r"[-\s]", "", cedula)
         usuario = User.objects.filter(numero_cedula=cedula_normalizada, rol="usuario").first()
 
@@ -237,9 +236,10 @@ class ReservaUsuarioCreateView(View):
                 password="12345678"
             )
 
-        # Crear la reserva
         habitaciones_ids = request.POST.getlist('habitaciones')
         habitaciones_disponibles = []
+        habitaciones_ocupadas = []
+
         for habitacion_id in habitaciones_ids:
             habitacion = get_object_or_404(Habitacion, id=habitacion_id)
             reservas_conflicto = ReservaHabitacion.objects.filter(
@@ -247,10 +247,28 @@ class ReservaUsuarioCreateView(View):
                 reserva__fecha_checkin__lt=fecha_checkout,
                 reserva__fecha_checkout__gt=fecha_checkin
             )
-
-            if not reservas_conflicto.exists():
+            if reservas_conflicto.exists():
+                habitaciones_ocupadas.append(habitacion.numero)
+            else:
                 habitaciones_disponibles.append(habitacion)
 
+        if habitaciones_ocupadas:
+            mensaje = f"La(s) habitación(es) {', '.join(habitaciones_ocupadas)} ya están ocupadas en esas fechas."
+            messages.error(request, mensaje)
+            return render(request, 'reserves/reserva_usuario.html', {
+                'hotel': hotel,
+                'habitaciones': Habitacion.objects.filter(hotel=hotel, estado='disponible'),
+            })
+
+        # Si no hay habitaciones disponibles, detener
+        if not habitaciones_disponibles:
+            messages.error(request, "No hay habitaciones disponibles para las fechas seleccionadas.")
+            return render(request, 'reserves/reserva_usuario.html', {
+                'hotel': hotel,
+                'habitaciones': Habitacion.objects.filter(hotel=hotel, estado='disponible'),
+            })
+
+        # Crear la reserva
         reserva = Reserva.objects.create(
             fecha_checkin=fecha_checkin,
             fecha_checkout=fecha_checkout,
@@ -260,26 +278,23 @@ class ReservaUsuarioCreateView(View):
             monto_total=0
         )
 
-        # Calcular el total
-        total = sum(habitacion.precio_noche for habitacion in habitaciones_disponibles)
+        total = 0
+        for habitacion in habitaciones_disponibles:
+            ReservaHabitacion.objects.create(reserva=reserva, habitacion=habitacion)
+            total += habitacion.precio_noche
+
         reserva.monto_total = total
         reserva.save()
 
-        # Asignar habitaciones a la reserva
-        for habitacion in habitaciones_disponibles:
-            ReservaHabitacion.objects.create(reserva=reserva, habitacion=habitacion)
-
-        # Si hay comprobante, guardarlo
         if archivo_comprobante:
             ComprobantePago.objects.create(reserva=reserva, archivo=archivo_comprobante)
 
-        # Generar PDF
+        # ✅ Solo si pasa toda la validación, generamos el PDF:
         buffer = io.BytesIO()
         p = canvas.Canvas(buffer, pagesize=letter)
 
-        # Imprimir los detalles solicitados
         p.drawString(100, 750, f"Número de cédula del usuario: {usuario.numero_cedula}")
-        p.drawString(100, 730, f"Nombre del hotel: {hotel.nombre_hotel}")  # Nombre del hotel
+        p.drawString(100, 730, f"Nombre del hotel: {hotel.nombre_hotel}")
         p.drawString(100, 710, f"Número de habitación: {', '.join([hab.numero for hab in habitaciones_disponibles])}")
         p.drawString(100, 690, f"Check-in: {fecha_checkin} - Check-out: {fecha_checkout}")
         p.drawString(100, 670, f"Total: ${total}")
@@ -288,13 +303,8 @@ class ReservaUsuarioCreateView(View):
         p.save()
 
         buffer.seek(0)
-
-        # Crear respuesta con el PDF
         response = HttpResponse(buffer, content_type='application/pdf')
-
-        # Establecer un encabezado para abrir el PDF en el navegador
         response['Content-Disposition'] = 'inline; filename="reserva.pdf"'
-
         return response
 
 
