@@ -1,4 +1,5 @@
 # profiles/views.py
+from django.contrib import messages
 from django.views import View
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login
@@ -103,3 +104,29 @@ class LoginEmpleadoView(View):
             return redirect('reserves-inicio')  # Nombre de la URL que redirige al panel de reservas
         else:
             return render(request, 'auth/login_empleado.html', {'error': 'Credenciales inválidas o no autorizado como empleado'})
+
+class EliminarEmpleadoView(View):
+    def post(self, request, *args, **kwargs):
+        # Obtener el nombre de usuario desde el formulario
+        username = request.POST.get('username')
+
+        try:
+            # Obtener el hotel (User con rol='hotel') de la sesión
+            hotel_user = User.objects.get(id=request.user.id, rol='hotel')
+
+            # Obtener el usuario a eliminar
+            user_to_delete = User.objects.get(username=username)
+
+            # Verificar si el usuario a eliminar es un empleado del hotel actual
+            if Empleado.objects.filter(user=user_to_delete, hotel=hotel_user).exists():
+                user_to_delete.delete()  # Eliminar el usuario
+                messages.success(request, f'El usuario "{username}" fue eliminado exitosamente.')
+            else:
+                messages.error(request, 'Este usuario no está vinculado al hotel actual.')
+
+        except User.DoesNotExist:
+            messages.error(request, f'El usuario "{username}" no existe.')
+        except Exception as e:
+            messages.error(request, f'Hubo un error al intentar eliminar el usuario: {str(e)}')
+
+        return redirect('registro_empleado')  # Redirigir al template de registro de empleados
