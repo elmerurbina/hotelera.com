@@ -5,7 +5,7 @@
 
 {% block content %}
 <h2>Registro</h2>
-<form method="POST">
+<form method="POST" enctype="multipart/form-data">
   {% csrf_token %}
   
   <!-- Selección de tipo de cuenta -->
@@ -31,6 +31,8 @@
   <!-- Campos específicos de hotel -->
   <div id="hotel_campos" style="display:none;">
     <input type="text" name="nombre_hotel" placeholder="Nombre del hotel"><br>
+    <!-- Nuevo campo de imagen -->
+    <input type="file" name="imagen_hotel" accept="image/*"><br>
   </div>
 
   <button type="submit">Registrarse</button>

@@ -6,7 +6,14 @@
   <h1 class="fw-bold">Bienvenido a Hotelera.com</h1>
   <p class="lead">La mejor plataforma para reservar hoteles fácilmente.</p>
 </div>
-    
+
+<!-- Llamado a hoteles -->
+<div class="bg-light p-4 rounded mb-5 text-center border shadow-sm">
+  <h2 class="fw-bold">¿Tienes un hotel y quieres atraer más clientes?</h2>
+  <p class="lead mb-3">Únete a la plataforma líder en reservas y lleva tu negocio al siguiente nivel. ¡No te quedes atrás!</p>
+  <a href="{% url 'registro_usuario' %}" class="btn btn-success px-4 py-2">Empezar ahora</a>
+</div>
+
 {% if messages %}
   <ul class="messages">
     {% for message in messages %}
@@ -19,53 +26,69 @@
   <h2 class="mb-3 text-center">¿En cuál hotel deseas reservar?</h2>
   <div class="row g-4">
 
-    <!-- Hotel 1 -->
+    <!-- Hoteles predefinidos -->
     <div class="col-md-6 col-lg-3">
       <div class="card h-100 shadow-sm">
         <img src="{% static 'media/images/hotel_paraiso.png' %}" class="card-img-top" alt="Hotel Paraíso">
         <div class="card-body">
           <h5 class="card-title text-primary">Hotel Paraíso</h5>
           <p class="card-text">Ubicado en la playa. Ideal para vacaciones familiares.</p>
-          <a href="{% url 'crear-reserva-usuario' %}" class="btn btn-outline-primary w-100">Reservar</a>
+          <a href="{% url 'crear-reserva-usuario' hotel_id=4 %}" class="btn btn-outline-primary w-100">Reservar</a>
         </div>
       </div>
     </div>
 
-    <!-- Hotel 2 -->
     <div class="col-md-6 col-lg-3">
       <div class="card h-100 shadow-sm">
         <img src="{% static 'media/images/hotel_central.png' %}" class="card-img-top" alt="Hotel Central">
         <div class="card-body">
           <h5 class="card-title text-primary">Hotel Central</h5>
           <p class="card-text">Perfecto para viajes de negocios en el centro.</p>
-          <a href="{% url 'crear-reserva-usuario' %}" class="btn btn-outline-primary w-100">Reservar</a>
+          <a href="{% url 'crear-reserva-usuario' hotel_id=3 %}" class="btn btn-outline-primary w-100">Reservar</a>
         </div>
       </div>
     </div>
 
-    <!-- Hotel 3 -->
     <div class="col-md-6 col-lg-3">
       <div class="card h-100 shadow-sm">
         <img src="{% static 'media/images/eco_hotel.png' %}" class="card-img-top" alt="Eco Hotel Montaña">
         <div class="card-body">
           <h5 class="card-title text-primary">Eco Hotel Montaña</h5>
           <p class="card-text">Experiencia eco-turística rodeada de naturaleza.</p>
-          <a href="{% url 'crear-reserva-usuario' %}" class="btn btn-outline-primary w-100">Reservar</a>
+          <a href="{% url 'crear-reserva-usuario' hotel_id=2 %}" class="btn btn-outline-primary w-100">Reservar</a>
         </div>
       </div>
     </div>
 
-    <!-- Hotel 4 -->
     <div class="col-md-6 col-lg-3">
       <div class="card h-100 shadow-sm">
         <img src="{% static 'media/images/luxury_suit.png' %}" class="card-img-top" alt="Luxury Suites">
         <div class="card-body">
           <h5 class="card-title text-primary">Luxury Suites</h5>
           <p class="card-text">Lujo, comodidad y servicios premium garantizados.</p>
-          <a href="{% url 'crear-reserva-usuario' %}" class="btn btn-outline-primary w-100">Reservar</a>
+          <a href="{% url 'crear-reserva-usuario' hotel_id=25 %}" class="btn btn-outline-primary w-100">Reservar</a>
         </div>
       </div>
     </div>
+
+      <!-- Hoteles registrados dinámicamente -->
+      {% for hotel in hoteles %}
+          <div class="col-md-6 col-lg-3">
+              <div class="card h-100 shadow-sm">
+                  {% if hotel.imagen_hotel %}
+                      <img src="{{ hotel.imagen_hotel.url }}" class="card-img-top" alt="{{ hotel.nombre_hotel }}">
+                  {% else %}
+                      <img src="{% static 'media/images/hotel_default.png' %}" class="card-img-top" alt="{{ hotel.nombre_hotel }}">
+                  {% endif %}
+
+                  <div class="card-body">
+                      <h5 class="card-title text-primary">{{ hotel.nombre_hotel }}</h5>
+                      <p class="card-text">{{ hotel.direccion }}</p>
+                      <a href="{% url 'crear-reserva-usuario' hotel_id=hotel.id %}" class="btn btn-outline-primary w-100">Reservar</a>
+                  </div>
+              </div>
+          </div>
+      {% endfor %}
 
   </div>
 </section>

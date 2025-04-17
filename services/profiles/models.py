@@ -2,6 +2,7 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 
+
 class User(AbstractUser):
     ROL_CHOICES = (
         ('usuario', 'Usuario Particular'),
@@ -27,6 +28,7 @@ class User(AbstractUser):
 
     # Campos exclusivos de hotel
     nombre_hotel = models.CharField(max_length=50, blank=True, null=True)
+    imagen_hotel = models.ImageField(upload_to='hotel_images/', blank=True, null=True)  # Nuevo campo
 
     def __str__(self):
         nombre = f"{self.first_name} {self.last_name}".strip()

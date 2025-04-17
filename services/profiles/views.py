@@ -42,6 +42,10 @@ class RegistroUsuarioView(View):
         numero_cedula = request.POST.get('numero_cedula')
         nombre_hotel = request.POST.get('nombre_hotel')
 
+        # Capturar la imagen si se sube
+        imagen_hotel = request.FILES.get('imagen_hotel')  # Capturamos la imagen
+
+        # Crear el usuario
         user = User.objects.create(
             username=username,
             email=email,
@@ -51,12 +55,13 @@ class RegistroUsuarioView(View):
             direccion=direccion,
             nombre_completo=nombre_completo if rol == 'usuario' else None,
             numero_cedula=numero_cedula if rol == 'usuario' else None,
-            nombre_hotel=nombre_hotel if rol == 'hotel' else None
+            nombre_hotel=nombre_hotel if rol == 'hotel' else None,
+            imagen_hotel=imagen_hotel if rol == 'hotel' else None  # Asignamos la imagen si es un hotel
         )
 
+        # Iniciar sesión con el nuevo usuario
         login(request, user)
         return redirect('home')
-
 
 class RegistroEmpleadoView(View):
     def get(self, request):

@@ -10,19 +10,41 @@
   <form method="POST" enctype="multipart/form-data">
     {% csrf_token %}
 
-    <!-- Sección 1: Datos personales -->
+    <!-- Sección 1: Datos personales y selección de habitaciones -->
     <div id="form-section-1">
+      <!-- Datos de usuario -->
+      <div id="campo-cedula">
+        <label for="cedula">Cédula del usuario (con o sin guiones):</label>
+        <input type="text" name="cedula_usuario" required><br>
+      </div>
+
+      <!-- Campos adicionales si es nuevo usuario -->
+      <div id="campos-nuevo-usuario" style="display: none;">
+        <label>Nombre:</label>
+        <input type="text" name="nombre"><br>
+
+        <label>Apellido:</label>
+        <input type="text" name="apellido"><br>
+
+        <label>Teléfono:</label>
+        <input type="text" name="telefono"><br>
+      </div>
+
       <label for="fecha_checkin">Fecha Check-In</label>
       <input type="date" name="fecha_checkin" required>
 
       <label for="fecha_checkout">Fecha Check-Out</label>
       <input type="date" name="fecha_checkout" required>
 
-      <label for="cedula">Cédula de identidad</label>
-      <input type="text" name="cedula" placeholder="cedula con guiones" required>
-
       <label for="telefono">Teléfono</label>
       <input type="text" name="telefono" placeholder="ej: +50512345678" required>
+
+      <!-- Paso 3: Selección de habitaciones -->
+      <label>Seleccionar habitaciones:</label><br>
+      {% for habitacion in habitaciones %}
+        <input type="checkbox" name="habitaciones" value="{{ habitacion.id }}">
+        Habitación {{ habitacion.numero }} - ${{ habitacion.precio_noche }}<br>
+      {% endfor %}
 
       <button type="button" class="btn" onclick="mostrarPago()">Siguiente</button>
     </div>
@@ -74,4 +96,5 @@
     }
   }
 </script>
+
 {% endblock %}

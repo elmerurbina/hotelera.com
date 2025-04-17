@@ -13,6 +13,8 @@ STATICFILES_DIRS = [
     BASE_DIR / "static",  # Aquí se indica la ubicación de tu carpeta de archivos estáticos
 ]
 
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 
 SECRET_KEY = "django-insecure-l^b$zy4wjy(hx@f#60k%6!5a@zwuwmp8uw!7)xua0^zzzv_obb"
