@@ -2,7 +2,7 @@
 from django.views import View
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login
-from django.contrib.auth.hashers import make_password
+from django.contrib.auth.hashers import make_password, check_password
 from .models import User, Empleado
 
 
@@ -14,13 +14,18 @@ class LoginView(View):
         email = request.POST.get('email')
         password = request.POST.get('password')
 
-        user = authenticate(request, username=email, password=password)
-        if user:
-            login(request, user)
-            return redirect('home')
-        else:
+        # Buscar al usuario por el correo electrónico
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
             return render(request, 'auth/login.html', {'error': 'Credenciales inválidas'})
 
+        # Verificar si la contraseña es correcta
+        if check_password(password, user.password):
+            login(request, user)
+            return redirect('home')  # Redirigir a la página de inicio o cualquier otra que desees
+        else:
+            return render(request, 'auth/login.html', {'error': 'Credenciales inválidas'})
 class RegistroUsuarioView(View):
     def get(self, request):
         return render(request, 'auth/registro_usuario.html')
