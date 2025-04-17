@@ -1,12 +1,12 @@
 import re
 from datetime import datetime
-
+from django.views.decorators.csrf import csrf_exempt
 from reportlab.pdfgen import canvas
 from django.db.models import Case, When, Value, IntegerField, Sum, Count
 from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models.functions import TruncMonth
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.utils.crypto import get_random_string
 from django.utils.decorators import method_decorator
 from django.views import View
@@ -95,11 +95,24 @@ class ReservaListEmpleadoView(LoginRequiredMixin, EmpleadoRequiredMixin, View):
 
 # 🔁 Cambiar estado de una reserva
 @method_decorator(xframe_options_exempt, name='dispatch')
+@method_decorator(csrf_exempt, name='dispatch')  # Asegurarnos que no bloqueen el CSRF en un formulario AJAX
 class ReservaUpdateEstadoView(UpdateView):
     model = Reserva
     fields = ['estado']  # Solo el campo que quieres editar
     template_name = 'reserves/reserva_estado_form.html'
-    success_url = reverse_lazy('lista-reservas-empleado')
+    success_url = reverse_lazy('lista-reservas-empleado')  # URL de éxito si es necesario redirigir
+
+    def form_valid(self, form):
+        # Procesamos el formulario y cambiamos el estado de la reserva
+        reserva = form.save(commit=False)
+        reserva.save()
+
+        # Devuelve una respuesta JSON para manejarla en el modal
+        return JsonResponse({'success': True, 'message': 'Estado actualizado con éxito.'})
+
+    def form_invalid(self, form):
+        # Si hay un error con el formulario
+        return JsonResponse({'success': False, 'message': 'Hubo un error al actualizar el estado.'})
 
 # 📝 Crear reserva como empleado
 class ReservaEmpleadoCreateView(View):
