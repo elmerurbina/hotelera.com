@@ -1,32 +1,87 @@
 {% extends "base.html" %}
-{% block content %}
-<h2>Listado de Habitaciones del Hotel</h2>
-<a href="{% url 'crear-habitacion' %}">Crear nueva habitación</a><br><br>
 
-<table border="1">
-  <tr>
-    <th>Número</th>
-    <th>Tipo</th>
-    <th>Descripción</th>
-    <th>Precio por Noche</th>
-    <th>Estado</th>
-    <th>Acciones</th>
-  </tr>
-  {% for habitacion in habitaciones %}
-  <tr>
-    <td>{{ habitacion.numero }}</td>
-    <td>{{ habitacion.tipo }}</td>
-    <td>{{ habitacion.descripcion }}</td>
-    <td>${{ habitacion.precio_noche }}</td>
-    <td>{{ habitacion.estado }}</td>
-    <td>
-      <a href="">Editar</a>
-    </td>
-  </tr>
-  {% empty %}
-  <tr>
-    <td colspan="6">No hay habitaciones registradas.</td>
-  </tr>
-  {% endfor %}
-</table>
+{% block content %}
+    <h2>Listado de Habitaciones del Hotel</h2>
+
+    {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+                <li class="{{ message.tags }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+    <a href="{% url 'crear-habitacion' %}">Crear nueva habitación</a><br><br>
+
+    <table border="1">
+        <tr>
+            <th>Número</th>
+            <th>Tipo</th>
+            <th>Descripción</th>
+            <th>Precio por Noche</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+        </tr>
+        {% for habitacion in habitaciones %}
+            <tr>
+                <td>{{ habitacion.numero }}</td>
+                <td>{{ habitacion.tipo }}</td>
+                <td>{{ habitacion.descripcion }}</td>
+                <td>${{ habitacion.precio_noche }}</td>
+                <td>{{ habitacion.estado }}</td>
+                <td>
+                    <button onclick="abrirModal({{ habitacion.id }}, '{{ habitacion.numero }}', '{{ habitacion.tipo }}', `{{ habitacion.descripcion|escapejs }}`, '{{ habitacion.precio_noche }}', '{{ habitacion.estado }}')">Editar</button>
+                </td>
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="6">No hay habitaciones registradas.</td>
+            </tr>
+        {% endfor %}
+    </table>
+
+    <!-- Fondo oscuro del modal -->
+    <div id="modalFondo" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:999;"></div>
+
+    <!-- Modal para editar habitación -->
+    <div id="modalEditar" style="display:none; position:fixed; top:5%; left:50%; transform:translateX(-50%); width:90%; max-width:600px; max-height:90%; overflow-y:auto; background:white; border:1px solid #ccc; padding:20px; z-index:1000; border-radius:10px; box-shadow:0 0 15px rgba(0,0,0,0.3);">
+        <h3>Editar Habitación</h3>
+        <form method="post" action="{% url 'editar-habitacion' %}">
+            {% csrf_token %}
+            <input type="hidden" name="id" id="habitacionId">
+            <label>Número:</label><br>
+            <input type="text" name="numero" id="numero" required><br><br>
+            <label>Tipo:</label><br>
+            <input type="text" name="tipo" id="tipo" required><br><br>
+            <label>Descripción:</label><br>
+            <textarea name="descripcion" id="descripcion" required></textarea><br><br>
+            <label>Precio por Noche:</label><br>
+            <input type="number" step="0.01" name="precio_noche" id="precio_noche" required><br><br>
+            <label>Estado:</label><br>
+            <select name="estado" id="estado" required>
+                <option value="disponible">Disponible</option>
+                <option value="ocupada">Ocupada</option>
+                <option value="mantenimiento">Mantenimiento</option>
+            </select><br><br>
+            <button type="submit">Guardar Cambios</button>
+            <button type="button" onclick="cerrarModal()">Cancelar</button>
+        </form>
+    </div>
+
+    <script>
+        function abrirModal(id, numero, tipo, descripcion, precio, estado) {
+            document.getElementById('habitacionId').value = id;
+            document.getElementById('numero').value = numero;
+            document.getElementById('tipo').value = tipo;
+            document.getElementById('descripcion').value = descripcion;
+            document.getElementById('precio_noche').value = precio;
+            document.getElementById('estado').value = estado;
+            document.getElementById('modalFondo').style.display = 'block';
+            document.getElementById('modalEditar').style.display = 'block';
+        }
+
+        function cerrarModal() {
+            document.getElementById('modalFondo').style.display = 'none';
+            document.getElementById('modalEditar').style.display = 'none';
+        }
+    </script>
 {% endblock %}

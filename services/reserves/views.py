@@ -70,6 +70,33 @@ class HabitacionListView(LoginRequiredMixin, EmpleadoRequiredMixin, View):
         habitaciones = Habitacion.objects.filter(hotel=request.user.empleado.hotel)
         return render(request, 'reserves/habitacion_list.html', {'habitaciones': habitaciones})
 
+from django.contrib import messages  # Asegúrate de importar esto
+
+class HabitacionEditView(LoginRequiredMixin, EmpleadoRequiredMixin, View):
+    def post(self, request):
+        habitacion_id = request.POST.get('id')
+        numero = request.POST.get('numero')
+        tipo = request.POST.get('tipo')
+        descripcion = request.POST.get('descripcion')
+        precio_noche = request.POST.get('precio_noche')
+        estado = request.POST.get('estado')
+
+        try:
+            habitacion = Habitacion.objects.get(id=habitacion_id, hotel=request.user.empleado.hotel)
+            habitacion.numero = numero
+            habitacion.tipo = tipo
+            habitacion.descripcion = descripcion
+            habitacion.precio_noche = precio_noche
+            habitacion.estado = estado
+            habitacion.save()
+
+            messages.success(request, f"La habitación {habitacion.numero} fue actualizada correctamente.")
+        except Habitacion.DoesNotExist:
+            messages.error(request, "Error: No se encontró la habitación que intentas editar.")
+
+        return redirect('lista-habitaciones')
+
+
 
 # 📅 Ver reservas del hotel
 class ReservaListEmpleadoView(LoginRequiredMixin, EmpleadoRequiredMixin, View):
