@@ -1,9 +1,13 @@
 # profiles/views.py
 from django.contrib import messages
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.urls import reverse_lazy
 from django.views import View
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.hashers import make_password, check_password
+from django.views.generic import UpdateView
+
 from .models import User, Empleado
 
 
@@ -130,3 +134,31 @@ class EliminarEmpleadoView(View):
             messages.error(request, f'Hubo un error al intentar eliminar el usuario: {str(e)}')
 
         return redirect('registro_empleado')  # Redirigir al template de registro de empleados
+
+class PerfilUsuarioView(LoginRequiredMixin, UpdateView):
+    model = User
+    template_name = 'auth/perfil.html'
+    fields = ['first_name', 'last_name', 'email', 'telefono', 'direccion',
+              'nombre_completo', 'numero_cedula', 'nombre_hotel', 'imagen_hotel']
+    success_url = reverse_lazy('ver-perfil')
+
+    def get_object(self, queryset=None):
+        return self.request.user  # El usuario autenticado actual
+
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+
+        # Ocultar campos que no corresponden al rol
+        if self.request.user.rol == 'usuario':
+            form.fields.pop('nombre_hotel')
+            form.fields.pop('imagen_hotel')
+        elif self.request.user.rol == 'hotel':
+            form.fields.pop('nombre_completo')
+            form.fields.pop('numero_cedula')
+        elif self.request.user.rol == 'empleado':
+            form.fields.pop('nombre_completo')
+            form.fields.pop('numero_cedula')
+            form.fields.pop('nombre_hotel')
+            form.fields.pop('imagen_hotel')
+
+        return form

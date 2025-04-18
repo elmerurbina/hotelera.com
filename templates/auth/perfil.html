@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+    {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+                <li class="{{ message.tags }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    <h2>Mi Perfil</h2>
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+
+        <button type="submit">Actualizar perfil</button>
+    </form>
+
+    {% if user.rol == 'hotel' and user.imagen_hotel %}
+        <h4>Logo del Hotel:</h4>
+        <img src="{{ user.imagen_hotel.url }}" alt="Logo del hotel" width="150">
+    {% endif %}
+{% endblock %}
