@@ -70,7 +70,7 @@ class HabitacionListView(LoginRequiredMixin, EmpleadoRequiredMixin, View):
         habitaciones = Habitacion.objects.filter(hotel=request.user.empleado.hotel)
         return render(request, 'reserves/habitacion_list.html', {'habitaciones': habitaciones})
 
-from django.contrib import messages  # Asegúrate de importar esto
+
 
 class HabitacionEditView(LoginRequiredMixin, EmpleadoRequiredMixin, View):
     def post(self, request):

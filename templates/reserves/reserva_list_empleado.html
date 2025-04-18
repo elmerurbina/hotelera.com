@@ -1,7 +1,9 @@
 {% extends "base.html" %}
+
 {% block content %}
 <h2>Reservas de mi Hotel</h2>
 <a href="{% url 'crear-reserva-empleado' %}">Crear nueva reserva</a><br><br>
+
 {% if messages %}
   <div class="alert-container">
     {% for message in messages %}
@@ -11,16 +13,17 @@
     {% endfor %}
   </div>
 {% endif %}
+
 <table border="1">
   <tr>
-      <th>Reserva</th>
-      <th>Usuario</th>
-      <th>Estado</th>
-      <th>Check-in</th>
-      <th>Check-out</th>
-      <th>Habitaciones</th>
-      <th>Monto Total</th>
-      <th>Acciones</th>
+    <th>Reserva</th>
+    <th>Usuario</th>
+    <th>Estado</th>
+    <th>Check-in</th>
+    <th>Check-out</th>
+    <th>Habitaciones</th>
+    <th>Monto Total</th>
+    <th>Acciones</th>
   </tr>
   {% for item in reservas_con_habitaciones %}
     <tr>
@@ -34,37 +37,80 @@
           {{ h.habitacion.numero }} ({{ h.habitacion.tipo }})<br>
         {% endfor %}
       </td>
-     <td>{{ item.reserva.monto_total }} </td>
+      <td>{{ item.reserva.monto_total }}</td>
       <td>
-        <a href="{% url 'cambiar-estado-reserva' item.reserva.id %}" onclick="openModal(event, this.href)">Cambiar Estado</a>
+        <a href="{% url 'cambiar-estado-reserva' item.reserva.id %}" class="btn-editar-estado" data-url="{% url 'cambiar-estado-reserva' item.reserva.id %}">Cambiar Estado</a>
       </td>
     </tr>
   {% empty %}
     <tr>
-      <td colspan="7">No hay reservas.</td>
+      <td colspan="8">No hay reservas.</td>
     </tr>
   {% endfor %}
 </table>
 
-<!-- Modal -->
-<div id="estadoModal" style="display:none; position:fixed; top:5%; left:10%; width:80%; height:90%; background:#fff; border:2px solid #333; z-index:1000;">
-  <div style="text-align:right; background:#f2f2f2; padding:10px;">
-    <button onclick="closeModal()">Cerrar</button>
+<!-- Modal para cambiar estado -->
+<div id="estadoModal" style="display:none; position:fixed; top:20%; left:30%; width:40%; background:#fff; border:1px solid #ccc; z-index:1000; padding:20px; box-shadow: 0 0 20px rgba(0,0,0,0.4); border-radius: 10px;">
+  <div style="text-align:right;">
+    <button onclick="closeModal()" style="background:red; color:white; border:none; padding:5px 10px; cursor:pointer;">✖</button>
   </div>
-  <iframe id="estadoIframe" style="width:100%; height:90%; border:none;"></iframe>
+  <div id="modalContent">
+    <!-- Aquí se cargará el formulario -->
+  </div>
 </div>
 
 <script>
-  function openModal(event, url) {
-    event.preventDefault();
+  function openModal() {
     document.getElementById("estadoModal").style.display = "block";
-    document.getElementById("estadoIframe").src = url;
   }
 
   function closeModal() {
     document.getElementById("estadoModal").style.display = "none";
-    document.getElementById("estadoIframe").src = "";
+    document.getElementById("modalContent").innerHTML = "";
   }
+
+  // Escuchar clics en botones "Cambiar Estado"
+  document.querySelectorAll(".btn-editar-estado").forEach(btn => {
+    btn.addEventListener("click", function(e) {
+      e.preventDefault();
+      const url = this.getAttribute("data-url");
+
+      fetch(url)
+        .then(response => response.text())
+        .then(html => {
+          document.getElementById("modalContent").innerHTML = html;
+          openModal();
+        });
+    });
+  });
+
+  // Escuchar envíos de formularios dentro del modal
+  document.addEventListener("submit", function(e) {
+    if (e.target.matches("#estado-form")) {
+      e.preventDefault();
+      const form = e.target;
+      const url = form.action;
+      const data = new FormData(form);
+
+      fetch(url, {
+        method: "POST",
+        body: data,
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+        }
+      })
+      .then(res => res.json())
+      .then(json => {
+        if (json.success) {
+          alert(json.message);
+          closeModal();
+          location.reload();
+        } else {
+          alert("Error: " + json.message);
+        }
+      });
+    }
+  });
 </script>
 
 {% endblock %}

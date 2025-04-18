@@ -1,17 +1,7 @@
-{% extends "base.html" %}
-{% block content %}
-<h2>Cambiar Estado de Reserva #{{ reserva.id }}</h2>
-
-<form method="post" action="{% url 'cambiar-estado-reserva' reserva.id %}">
+<form id="estado-form" method="post" action="{% url 'cambiar-estado-reserva' object.id %}">
   {% csrf_token %}
-  <label for="estado">Nuevo Estado:</label>
-  <select name="estado" id="estado">
-    {% for key, value in reserva.ESTADO_CHOICES %}
-      <option value="{{ key }}" {% if reserva.estado == key %}selected{% endif %}>{{ value }}</option>
-    {% endfor %}
-  </select>
+  <label for="id_estado">Nuevo estado:</label>
+  {{ form.estado }}
   <br><br>
   <button type="submit">Actualizar Estado</button>
 </form>
-
-{% endblock %}
