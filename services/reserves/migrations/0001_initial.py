@@ -29,7 +29,10 @@ class Migration(migrations.Migration):
                 ),
                 ("numero", models.CharField(max_length=10)),
                 ("descripcion", models.TextField()),
-                ("precio_noche", models.DecimalField(decimal_places=2, max_digits=10)),
+                (
+                    "precio_noche",
+                    models.DecimalField(decimal_places=2, max_digits=10),
+                ),
                 ("tipo", models.CharField(max_length=50)),
                 (
                     "estado",
@@ -105,7 +108,10 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 ("metodo_pago", models.CharField(max_length=50)),
-                ("monto_total", models.DecimalField(decimal_places=2, max_digits=10)),
+                (
+                    "monto_total",
+                    models.DecimalField(decimal_places=2, max_digits=10),
+                ),
                 (
                     "empleado",
                     models.ForeignKey(
@@ -150,7 +156,10 @@ class Migration(migrations.Migration):
                         verbose_name="ID",
                     ),
                 ),
-                ("archivo_comprobante", models.FileField(upload_to="comprobantes/")),
+                (
+                    "archivo_comprobante",
+                    models.FileField(upload_to="comprobantes/"),
+                ),
                 ("fecha_subida", models.DateTimeField(auto_now_add=True)),
                 (
                     "reserva",

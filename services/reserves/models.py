@@ -79,7 +79,9 @@ class ReservaHabitacion(models.Model):
     habitacion = models.ForeignKey(Habitacion, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f"Reserva {self.reserva.id} - Habitación {self.habitacion.numero}"
+        return (
+            f"Reserva {self.reserva.id} - Habitación {self.habitacion.numero}"
+        )
 
 
 # Modelo para guardar los comprobantes de pago
@@ -101,4 +103,6 @@ class ReporteContable(models.Model):
     archivo_excel = models.FileField(upload_to="reportes/")
 
     def __str__(self):
-        return f"Reporte {self.id} generado por {self.generado_por.user.username}"
+        return (
+            f"Reporte {self.id} generado por {self.generado_por.user.username}"
+        )

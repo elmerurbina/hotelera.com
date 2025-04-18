@@ -12,15 +12,25 @@ from .views import (
 
 urlpatterns = [
     path("login/", LoginView.as_view(), name="login"),
-    path("login-empleado/", LoginEmpleadoView.as_view(), name="login_empleado"),
+    path(
+        "login-empleado/", LoginEmpleadoView.as_view(), name="login_empleado"
+    ),
     path("registro/", RegistroUsuarioView.as_view(), name="registro_usuario"),
     path(
-        "registro-empleado/", RegistroEmpleadoView.as_view(), name="registro_empleado"
+        "registro-empleado/",
+        RegistroEmpleadoView.as_view(),
+        name="registro_empleado",
     ),
     path(
-        "eliminar-empleado/", EliminarEmpleadoView.as_view(), name="eliminar_empleado"
+        "eliminar-empleado/",
+        EliminarEmpleadoView.as_view(),
+        name="eliminar_empleado",
     ),
     path("logout/", LogoutView.as_view(), name="logout"),
     path("mi-perfil/", PerfilUsuarioView.as_view(), name="ver-perfil"),
-    path("eliminar-perfil/", EliminarPerfilView.as_view(), name="eliminar-perfil"),
+    path(
+        "eliminar-perfil/",
+        EliminarPerfilView.as_view(),
+        name="eliminar-perfil",
+    ),
 ]

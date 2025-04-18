@@ -38,7 +38,10 @@ class Migration(migrations.Migration):
             model_name="user",
             name="rol",
             field=models.CharField(
-                choices=[("usuario", "Usuario Particular"), ("hotel", "Hotel")],
+                choices=[
+                    ("usuario", "Usuario Particular"),
+                    ("hotel", "Hotel"),
+                ],
                 default="usuario",
                 max_length=10,
             ),

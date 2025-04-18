@@ -16,7 +16,9 @@ MEDIA_ROOT = BASE_DIR / "media"
 
 LOGOUT_REDIRECT_URL = "pagina_logout"
 
-SECRET_KEY = "django-insecure-l^b$zy4wjy(hx@f#60k%6!5a@zwuwmp8uw!7)xua0^zzzv_obb"
+SECRET_KEY = (
+    "django-insecure-l^b$zy4wjy(hx@f#60k%6!5a@zwuwmp8uw!7)xua0^zzzv_obb"
+)
 DEBUG = True
 ALLOWED_HOSTS = []
 
@@ -128,7 +130,9 @@ try:
     for app_config in apps.get_app_configs():
 
         try:
-            print(f"  Modelos: {list(app_config.models.keys())}", file=sys.stderr)
+            print(
+                f"  Modelos: {list(app_config.models.keys())}", file=sys.stderr
+            )
         except Exception as e:
             print(f"  Error al cargar modelos: {str(e)}", file=sys.stderr)
 
@@ -138,13 +142,18 @@ try:
         print("\nConfiguración de profiles:", file=sys.stderr)
         print(f"Nombre: {profiles_config.name}", file=sys.stderr)
         print(f"Label: {profiles_config.label}", file=sys.stderr)
-        print(f"Modelos: {list(profiles_config.models.keys())}", file=sys.stderr)
+        print(
+            f"Modelos: {list(profiles_config.models.keys())}", file=sys.stderr
+        )
 
         # Verificar si el modelo User está registrado
         if "user" in profiles_config.models:
             print("Modelo User encontrado en profiles", file=sys.stderr)
         else:
-            print("ADVERTENCIA: Modelo User no encontrado en profiles", file=sys.stderr)
+            print(
+                "ADVERTENCIA: Modelo User no encontrado en profiles",
+                file=sys.stderr,
+            )
     except LookupError:
         print("ERROR: No se pudo encontrar la app 'profiles'", file=sys.stderr)
 
@@ -162,7 +171,9 @@ try:
             module_path, class_name = middleware.rsplit(".", 1)
             module = import_module(module_path)
             middleware_class = getattr(module, class_name)
-            print(f"  Cargado correctamente: {middleware_class}", file=sys.stderr)
+            print(
+                f"  Cargado correctamente: {middleware_class}", file=sys.stderr
+            )
         except Exception as e:
             print(f"  ERROR al cargar: {str(e)}", file=sys.stderr)
 

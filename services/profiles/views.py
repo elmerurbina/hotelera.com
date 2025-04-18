@@ -122,7 +122,9 @@ class LoginEmpleadoView(View):
             return render(
                 request,
                 "auth/login_empleado.html",
-                {"error": "Credenciales inválidas o no autorizado como empleado"},
+                {
+                    "error": "Credenciales inválidas o no autorizado como empleado"
+                },
             )
 
 
@@ -140,10 +142,13 @@ class EliminarEmpleadoView(View):
             user_to_delete = User.objects.get(username=username)
 
             # Verificar si el usuario a eliminar es un empleado del hotel actual
-            if Empleado.objects.filter(user=user_to_delete, hotel=hotel_user).exists():
+            if Empleado.objects.filter(
+                user=user_to_delete, hotel=hotel_user
+            ).exists():
                 user_to_delete.delete()  # Eliminar el usuario
                 messages.success(
-                    request, f'El usuario "{username}" fue eliminado exitosamente.'
+                    request,
+                    f'El usuario "{username}" fue eliminado exitosamente.',
                 )
             else:
                 messages.error(
@@ -154,7 +159,8 @@ class EliminarEmpleadoView(View):
             messages.error(request, f'El usuario "{username}" no existe.')
         except Exception as e:
             messages.error(
-                request, f"Hubo un error al intentar eliminar el usuario: {str(e)}"
+                request,
+                f"Hubo un error al intentar eliminar el usuario: {str(e)}",
             )
 
         return redirect(
@@ -205,7 +211,9 @@ class PerfilUsuarioView(LoginRequiredMixin, UpdateView):
 class EliminarPerfilView(LoginRequiredMixin, DeleteView):
     model = User
     template_name = "auth/confirmar_eliminacion.html"
-    success_url = reverse_lazy("home")  # Redirige al inicio después de la eliminación
+    success_url = reverse_lazy(
+        "home"
+    )  # Redirige al inicio después de la eliminación
 
     def get_object(self, queryset=None):
         return self.request.user  # El usuario autenticado actual

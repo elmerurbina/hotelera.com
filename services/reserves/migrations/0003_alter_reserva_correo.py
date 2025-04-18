@@ -13,6 +13,8 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="reserva",
             name="correo",
-            field=models.EmailField(default="hotelera.com@gmail.com", max_length=254),
+            field=models.EmailField(
+                default="hotelera.com@gmail.com", max_length=254
+            ),
         ),
     ]

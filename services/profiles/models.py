@@ -11,7 +11,9 @@ class User(AbstractUser):
         ("empleado", "Empleado"),
     )
 
-    rol = models.CharField(max_length=10, choices=ROL_CHOICES, default="usuario")
+    rol = models.CharField(
+        max_length=10, choices=ROL_CHOICES, default="usuario"
+    )
 
     # Campos comunes
     telefono = models.CharField(max_length=15, blank=True, null=True)
