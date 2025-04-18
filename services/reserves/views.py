@@ -337,13 +337,32 @@ class ReservaUsuarioCreateView(View):
         response['Content-Disposition'] = 'inline; filename="reserva.pdf"'
         return response
 
-class MisReservasListView(LoginRequiredMixin, UserPassesTestMixin, View):
-    def test_func(self):
-        return self.request.user.rol == 'usuario'
 
+class MisReservasView(View):
+    # Muestra las reservas del usuario
     def get(self, request):
-        reservas = Reserva.objects.filter(usuario=request.user)
-        return render(request, 'reserves/mis_reservas.html', {'reservas': reservas})
+        if request.user.is_authenticated:
+            reservas = Reserva.objects.filter(usuario=request.user)  # Filtra las reservas del usuario autenticado
+            return render(request, 'reserves/mis_reservas.html', {'reservas': reservas})
+        else:
+            messages.error(request, "Por favor, inicie sesión para ver sus reservas.")
+            return redirect('login')
+
+
+class CancelarReservaView(View):
+    # Permite al usuario cancelar una reserva
+    def post(self, request, reserva_id):
+        reserva = get_object_or_404(Reserva, id=reserva_id, usuario=request.user)
+
+        # Verificar si la reserva se puede cancelar (solo puede cancelarse si está pendiente)
+        if reserva.estado == 'pendiente':
+            reserva.estado = 'cancelada'
+            reserva.save()
+            messages.success(request, f"La reserva {reserva.id} ha sido cancelada exitosamente.")
+        else:
+            messages.error(request, f"La reserva {reserva.id} no puede ser cancelada porque ya está {reserva.estado}.")
+
+        return redirect('mis_reservas')  # Redirige al listado de reservas
 
 
 class EmpleadoRequiredMixin(UserPassesTestMixin):
