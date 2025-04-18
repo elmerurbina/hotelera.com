@@ -4,44 +4,51 @@
 {% block title %}Registro de Cuenta{% endblock %}
 
 {% block content %}
-<h2>Registro</h2>
-<form method="POST" enctype="multipart/form-data">
-  {% csrf_token %}
-  
-  <!-- Selección de tipo de cuenta -->
-  <select name="rol" required onchange="mostrarCampos(this.value)">
-    <option value="">Selecciona tipo de cuenta</option>
-    <option value="usuario">Usuario Particular</option>
-    <option value="hotel">Hotel</option>
-  </select><br>
+    <h2>Registro</h2>
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
 
-  <!-- Campos comunes -->
-  <input type="text" name="username" placeholder="Nombre de usuario" required><br>
-  <input type="email" name="email" placeholder="Correo electrónico" required><br>
-  <input type="password" name="password" placeholder="Contraseña" required><br>
-  <input type="text" name="telefono" placeholder="Teléfono"><br>
-  <textarea name="direccion" placeholder="Dirección"></textarea><br>
+        <!-- Selección de tipo de cuenta -->
+        <select name="rol" required onchange="mostrarCampos(this.value)">
+            <option value="">Selecciona tipo de cuenta</option>
+            <option value="usuario">Usuario Particular</option>
+            <option value="hotel">Hotel</option>
+        </select><br>
 
-  <!-- Campos específicos de usuario -->
-  <div id="usuario_campos" style="display:none;">
-    <input type="text" name="nombre_completo" placeholder="Nombre completo"><br>
-    <input type="text" name="numero_cedula" placeholder="Número de cédula"><br>
-  </div>
+        <!-- Campos comunes -->
+        <input type="text" name="username" placeholder="Nombre de usuario" required><br>
+        <input type="email" name="email" placeholder="Correo electrónico" required><br>
+        <input type="password" name="password" placeholder="Contraseña" required><br>
+        <input type="text" name="telefono" placeholder="Teléfono"><br>
+        <textarea name="direccion" placeholder="Dirección"></textarea><br>
 
-  <!-- Campos específicos de hotel -->
-  <div id="hotel_campos" style="display:none;">
-    <input type="text" name="nombre_hotel" placeholder="Nombre del hotel"><br>
-    <!-- Nuevo campo de imagen -->
-    <input type="file" name="imagen_hotel" accept="image/*"><br>
-  </div>
+        <!-- Campos específicos de usuario -->
+        <div id="usuario_campos" style="display:none;">
+            <input type="text" name="nombre_completo" placeholder="Nombre completo"><br>
+            <input type="text" name="numero_cedula" placeholder="Número de cédula"><br>
+        </div>
 
-  <button type="submit">Registrarse</button>
-</form>
+        <!-- Campos específicos de hotel -->
+        <div id="hotel_campos" style="display:none;">
+            <input type="text" name="nombre_hotel" placeholder="Nombre del hotel"><br>
+            <!-- Nuevo campo de imagen -->
+            <input type="file" name="imagen_hotel" accept="image/*"><br>
+            
+            <!-- Opción de Mes de Prueba Gratis solo para hoteles -->
+            <div id="mes_prueba" style="display:none;">
+                <p>Comienza un Mes de Prueba Gratis</p>
+            </div>
+        </div>
 
-<script>
-function mostrarCampos(rol) {
-    document.getElementById('usuario_campos').style.display = (rol === 'usuario') ? 'block' : 'none';
-    document.getElementById('hotel_campos').style.display = (rol === 'hotel') ? 'block' : 'none';
-}
-</script>
+        <button type="submit">Registrarse</button>
+    </form>
+
+    <script>
+        function mostrarCampos(rol) {
+            document.getElementById('usuario_campos').style.display = (rol === 'usuario') ? 'block' : 'none';
+            document.getElementById('hotel_campos').style.display = (rol === 'hotel') ? 'block' : 'none';
+            // Mostrar el mes de prueba solo si el rol es 'hotel'
+            document.getElementById('mes_prueba').style.display = (rol === 'hotel') ? 'block' : 'none';
+        }
+    </script>
 {% endblock %}

@@ -2,46 +2,46 @@
 {% load static %}
 
 {% block content %}
-<div class="container d-flex align-items-center justify-content-center vh-100">
-    <div class="card p-4 shadow" style="width: 100%; max-width: 400px;">
-        <h4 class="mb-4 text-center">Ingreso de Empleado</h4>
-        {% if messages %}
-        <div class="alert-container">
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags }}" role="alert">
-                    {{ message }}
+    <div class="container d-flex align-items-center justify-content-center vh-100">
+        <div class="card p-4 shadow" style="width: 100%; max-width: 400px;">
+            <h4 class="mb-4 text-center">Ingreso de Empleado</h4>
+            {% if messages %}
+                <div class="alert-container">
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }}" role="alert">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
                 </div>
-            {% endfor %}
+            {% endif %}
+
+            {% if error %}
+                <div class="alert alert-danger">
+                    {{ error }}
+                </div>
+            {% endif %}
+
+
+            {% if error %}
+                <div class="alert alert-danger" role="alert">{{ error }}</div>
+            {% endif %}
+
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="username" class="form-label">Usuario</label>
+                    <input type="text" class="form-control" name="username" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="password" class="form-label">Contraseña</label>
+                    <input type="password" class="form-control" name="password" required>
+                </div>
+
+                <div class="d-grid">
+                    <button type="submit">Ingresar</button>
+                </div>
+            </form>
         </div>
-    {% endif %}
-
-    {% if error %}
-        <div class="alert alert-danger">
-            {{ error }}
-        </div>
-    {% endif %}
-
-
-        {% if error %}
-            <div class="alert alert-danger" role="alert">{{ error }}</div>
-        {% endif %}
-
-        <form method="post">
-            {% csrf_token %}
-            <div class="mb-3">
-                <label for="username" class="form-label">Usuario</label>
-                <input type="text" class="form-control" name="username" required>
-            </div>
-
-            <div class="mb-3">
-                <label for="password" class="form-label">Contraseña</label>
-                <input type="password" class="form-control" name="password" required>
-            </div>
-
-            <div class="d-grid">
-                <button type="submit">Ingresar</button>
-            </div>
-        </form>
     </div>
-</div>
 {% endblock %}

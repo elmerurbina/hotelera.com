@@ -1,12 +1,12 @@
 {% extends 'base.html' %}
 
 {% block content %}
-  <h2>Confirmación de eliminación de perfil</h2>
-  <p>¿Estás seguro de que deseas eliminar tu perfil? Esta acción es irreversible.</p>
+    <h2>Confirmación de eliminación de perfil</h2>
+    <p>¿Estás seguro de que deseas eliminar tu perfil? Esta acción es irreversible.</p>
 
-  <form method="post">
-    {% csrf_token %}
-    <button type="submit" class="btn btn-danger">Eliminar mi perfil</button>
-    <a href="{% url 'ver-perfil' %}" class="btn btn-secondary">Cancelar</a>
-  </form>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Eliminar mi perfil</button>
+        <a href="{% url 'ver-perfil' %}" class="btn btn-secondary">Cancelar</a>
+    </form>
 {% endblock %}

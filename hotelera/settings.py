@@ -3,8 +3,6 @@ import sys
 from django.apps import apps
 
 
-
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -13,10 +11,10 @@ STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
 
-LOGOUT_REDIRECT_URL = 'pagina_logout'
+LOGOUT_REDIRECT_URL = "pagina_logout"
 
 SECRET_KEY = "django-insecure-l^b$zy4wjy(hx@f#60k%6!5a@zwuwmp8uw!7)xua0^zzzv_obb"
 DEBUG = True
@@ -52,7 +50,7 @@ ROOT_URLCONF = "hotelera.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / 'templates'],
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -69,18 +67,18 @@ WSGI_APPLICATION = "hotelera.wsgi.application"
 
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'hotelera',  # Nombre de la base de datos
-        'USER': 'root',
-        'PASSWORD': '',
-        'HOST': 'localhost',                   # Si estás usando MySQL en el mismo servidor, usa 'localhost'
-        'PORT': '3306',                        # Puerto por defecto de MySQL
+    "default": {
+        "ENGINE": "django.db.backends.mysql",
+        "NAME": "hotelera",  # Nombre de la base de datos
+        "USER": "root",
+        "PASSWORD": "7>>HhNN6/fZ",
+        "HOST": "localhost",  # Si estás usando MySQL en el mismo servidor, usa 'localhost'
+        "PORT": "3306",  # Puerto por defecto de MySQL
     }
 }
 
 
-AUTH_USER_MODEL = 'profiles.User'
+AUTH_USER_MODEL = "profiles.User"
 
 
 # Verificación explícita del modelo de usuario
@@ -88,7 +86,10 @@ try:
     from django.contrib.auth import get_user_model
 
     User = get_user_model()
-    print(f"Modelo de usuario cargado correctamente: {User.__module__}.{User.__name__}", file=sys.stderr)
+    print(
+        f"Modelo de usuario cargado correctamente: {User.__module__}.{User.__name__}",
+        file=sys.stderr,
+    )
 except Exception as e:
     print(f"ERROR al cargar AUTH_USER_MODEL: {str(e)}", file=sys.stderr)
 
@@ -108,7 +109,6 @@ AUTH_PASSWORD_VALIDATORS = [
         "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
-
 
 
 LANGUAGE_CODE = "en-us"
@@ -134,14 +134,14 @@ try:
 
     # Verificación especial para la app profiles
     try:
-        profiles_config = apps.get_app_config('profiles')
+        profiles_config = apps.get_app_config("profiles")
         print("\nConfiguración de profiles:", file=sys.stderr)
         print(f"Nombre: {profiles_config.name}", file=sys.stderr)
         print(f"Label: {profiles_config.label}", file=sys.stderr)
         print(f"Modelos: {list(profiles_config.models.keys())}", file=sys.stderr)
 
         # Verificar si el modelo User está registrado
-        if 'user' in profiles_config.models:
+        if "user" in profiles_config.models:
             print("Modelo User encontrado en profiles", file=sys.stderr)
         else:
             print("ADVERTENCIA: Modelo User no encontrado en profiles", file=sys.stderr)
@@ -159,7 +159,7 @@ try:
     for middleware in settings.MIDDLEWARE:
         print(f"Middleware: {middleware}", file=sys.stderr)
         try:
-            module_path, class_name = middleware.rsplit('.', 1)
+            module_path, class_name = middleware.rsplit(".", 1)
             module = import_module(module_path)
             middleware_class = getattr(module, class_name)
             print(f"  Cargado correctamente: {middleware_class}", file=sys.stderr)
@@ -184,7 +184,10 @@ def debug_after_load():
             print(f"- {app_config.name}", file=sys.stderr)
 
         User = get_user_model()
-        print(f"\nModelo de usuario obtenido: {User.__module__}.{User.__name__}", file=sys.stderr)
+        print(
+            f"\nModelo de usuario obtenido: {User.__module__}.{User.__name__}",
+            file=sys.stderr,
+        )
 
     except Exception as e:
         print(f"ERROR en debug post-load: {str(e)}", file=sys.stderr)

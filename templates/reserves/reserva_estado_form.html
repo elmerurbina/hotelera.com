@@ -1,7 +1,7 @@
 <form id="estado-form" method="post" action="{% url 'cambiar-estado-reserva' object.id %}">
-  {% csrf_token %}
-  <label for="id_estado">Nuevo estado:</label>
-  {{ form.estado }}
-  <br><br>
-  <button type="submit">Actualizar Estado</button>
+    {% csrf_token %}
+    <label for="id_estado">Nuevo estado:</label>
+    {{ form.estado }}
+    <br><br>
+    <button type="submit">Actualizar Estado</button>
 </form>

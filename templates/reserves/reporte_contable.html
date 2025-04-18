@@ -3,19 +3,19 @@
 
 
 {% block content %}
-<h2>📊 Reporte Contable</h2>
+    <h2>📊 Reporte Contable</h2>
 
-<div class="alert alert-success">
-    <strong>Total de ingresos:</strong> ${{ total_ingresos }}
-</div>
-<div class="alert alert-info">
-    <strong>Promedio de ventas diario (30 días):</strong> ${{ promedio_ventas }}
-</div>
+    <div class="alert alert-success">
+        <strong>Total de ingresos:</strong> ${{ total_ingresos }}
+    </div>
+    <div class="alert alert-info">
+        <strong>Promedio de ventas diario (30 días):</strong> ${{ promedio_ventas }}
+    </div>
 
     <a href="{% url 'reserves-inicio' %}" class="btn btn-secondary mt-3">⬅ Volver al Panel</a>
     <br>
     <h3>📈 Distribución de Reservas</h3>
-<img src="data:image/png;base64,{{ grafico_estado_base64 }}" alt="Gráfico de pastel de estados de reserva">
+    <img src="data:image/png;base64,{{ grafico_estado_base64 }}" alt="Gráfico de pastel de estados de reserva">
 
     <h3>Ingresos por Mes</h3>
     <img src="data:image/png;base64,{{ grafico_barras_base64 }}" alt="Gráfico de barras">

@@ -1,6 +1,5 @@
 import re
 from datetime import datetime
-
 import pytesseract
 from PIL import Image
 from django.views.decorators.csrf import csrf_exempt
@@ -18,7 +17,6 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.urls import reverse_lazy
 from django.views.decorators.clickjacking import xframe_options_exempt
 from reportlab.lib.pagesizes import letter
-
 from .models import Habitacion, Reserva, ReservaHabitacion, ComprobantePago
 from services.profiles.models import User, Empleado
 import io
@@ -31,26 +29,26 @@ from django.views.generic import TemplateView, UpdateView, CreateView
 # Mixin para verificar si el usuario es empleado
 class EmpleadoRequiredMixin(UserPassesTestMixin):
     def test_func(self):
-        return hasattr(self.request.user, 'empleado')
+        return hasattr(self.request.user, "empleado")
 
 
 # Vista principal tras login de empleados
 class ReservasInicioView(LoginRequiredMixin, EmpleadoRequiredMixin, View):
     def get(self, request):
-        return render(request, 'reserves/inicio_empleado.html')
+        return render(request, "reserves/inicio_empleado.html")
 
 
 # 🛏 Crear habitación
 class HabitacionCreateView(LoginRequiredMixin, EmpleadoRequiredMixin, View):
     def get(self, request):
-        return render(request, 'reserves/habitacion_form.html')
+        return render(request, "reserves/habitacion_form.html")
 
     def post(self, request):
-        numero = request.POST.get('numero')
-        descripcion = request.POST.get('descripcion')
-        precio_noche = request.POST.get('precio_noche')
-        tipo = request.POST.get('tipo')
-        estado = request.POST.get('estado', 'disponible')
+        numero = request.POST.get("numero")
+        descripcion = request.POST.get("descripcion")
+        precio_noche = request.POST.get("precio_noche")
+        tipo = request.POST.get("tipo")
+        estado = request.POST.get("estado", "disponible")
 
         hotel = request.user.empleado.hotel
         Habitacion.objects.create(
@@ -59,30 +57,34 @@ class HabitacionCreateView(LoginRequiredMixin, EmpleadoRequiredMixin, View):
             precio_noche=precio_noche,
             tipo=tipo,
             estado=estado,
-            hotel=hotel
+            hotel=hotel,
         )
-        return redirect('lista-habitaciones')
+        return redirect("lista-habitaciones")
 
 
-# 📋 Lista habitaciones
+# 📋 Ver Lista habitaciones
 class HabitacionListView(LoginRequiredMixin, EmpleadoRequiredMixin, View):
     def get(self, request):
         habitaciones = Habitacion.objects.filter(hotel=request.user.empleado.hotel)
-        return render(request, 'reserves/habitacion_list.html', {'habitaciones': habitaciones})
+        return render(
+            request, "reserves/habitacion_list.html", {"habitaciones": habitaciones}
+        )
 
 
-
+# Editar Habitacion
 class HabitacionEditView(LoginRequiredMixin, EmpleadoRequiredMixin, View):
     def post(self, request):
-        habitacion_id = request.POST.get('id')
-        numero = request.POST.get('numero')
-        tipo = request.POST.get('tipo')
-        descripcion = request.POST.get('descripcion')
-        precio_noche = request.POST.get('precio_noche')
-        estado = request.POST.get('estado')
+        habitacion_id = request.POST.get("id")
+        numero = request.POST.get("numero")
+        tipo = request.POST.get("tipo")
+        descripcion = request.POST.get("descripcion")
+        precio_noche = request.POST.get("precio_noche")
+        estado = request.POST.get("estado")
 
         try:
-            habitacion = Habitacion.objects.get(id=habitacion_id, hotel=request.user.empleado.hotel)
+            habitacion = Habitacion.objects.get(
+                id=habitacion_id, hotel=request.user.empleado.hotel
+            )
             habitacion.numero = numero
             habitacion.tipo = tipo
             habitacion.descripcion = descripcion
@@ -90,48 +92,68 @@ class HabitacionEditView(LoginRequiredMixin, EmpleadoRequiredMixin, View):
             habitacion.estado = estado
             habitacion.save()
 
-            messages.success(request, f"La habitación {habitacion.numero} fue actualizada correctamente.")
+            messages.success(
+                request,
+                f"La habitación {habitacion.numero} fue actualizada correctamente.",
+            )
         except Habitacion.DoesNotExist:
-            messages.error(request, "Error: No se encontró la habitación que intentas editar.")
+            messages.error(
+                request, "Error: No se encontró la habitación que intentas editar."
+            )
 
-        return redirect('lista-habitaciones')
-
+        return redirect("lista-habitaciones")
 
 
 # 📅 Ver reservas del hotel
 class ReservaListEmpleadoView(LoginRequiredMixin, EmpleadoRequiredMixin, View):
     def get(self, request):
         # Anotar las reservas para ordenar: 0 si es pendiente, 1 si es finalizado, 2 si es cancelado
-        reservas = Reserva.objects.filter(hotel=request.user.empleado.hotel).annotate(
-            orden_estado=Case(
-                When(estado="finalizada", then=Value(2)),  # Estado finalizado al final
-                When(estado="cancelada", then=Value(3)),  # Estado cancelado al final
-                default=Value(1),  # Estado pendiente (default) al principio
-                output_field=IntegerField()
+        reservas = (
+            Reserva.objects.filter(hotel=request.user.empleado.hotel)
+            .annotate(
+                orden_estado=Case(
+                    When(
+                        estado="finalizada", then=Value(2)
+                    ),  # Estado finalizado al final
+                    When(
+                        estado="cancelada", then=Value(3)
+                    ),  # Estado cancelado al final
+                    default=Value(1),  # Estado pendiente (default) al principio
+                    output_field=IntegerField(),
+                )
             )
-        ).order_by('orden_estado', '-fecha_checkin')
+            .order_by("orden_estado", "-fecha_checkin")
+        )
 
         reservas_con_habitaciones = []
 
         for reserva in reservas:
-            habitaciones = ReservaHabitacion.objects.filter(reserva=reserva).select_related('habitacion')
-            reservas_con_habitaciones.append({
-                'reserva': reserva,
-                'habitaciones': habitaciones
-            })
+            habitaciones = ReservaHabitacion.objects.filter(
+                reserva=reserva
+            ).select_related("habitacion")
+            reservas_con_habitaciones.append(
+                {"reserva": reserva, "habitaciones": habitaciones}
+            )
 
-        return render(request, 'reserves/reserva_list_empleado.html', {
-            'reservas_con_habitaciones': reservas_con_habitaciones
-        })
+        return render(
+            request,
+            "reserves/reserva_list_empleado.html",
+            {"reservas_con_habitaciones": reservas_con_habitaciones},
+        )
+
 
 # 🔁 Cambiar estado de una reserva
-@method_decorator(xframe_options_exempt, name='dispatch')
-@method_decorator(csrf_exempt, name='dispatch')  # Asegurarnos que no bloqueen el CSRF en un formulario AJAX
+@method_decorator(xframe_options_exempt, name="dispatch")
+@method_decorator(
+    csrf_exempt, name="dispatch"
+)  # Asegurarnos que no bloqueen el CSRF en un formulario AJAX
 class ReservaUpdateEstadoView(UpdateView):
     model = Reserva
-    fields = ['estado']  # Solo el campo que quieres editar
-    template_name = 'reserves/reserva_estado_form.html'
-    success_url = reverse_lazy('lista-reservas-empleado')  # URL de éxito si es necesario redirigir
+    fields = ["estado"]  # Solo el campo que quieres editar
+    template_name = "reserves/reserva_estado_form.html"
+    success_url = reverse_lazy(
+        "lista-reservas-empleado"
+    )  # URL de éxito si es necesario redirigir
 
     def form_valid(self, form):
         # Procesamos el formulario y cambiamos el estado de la reserva
@@ -139,31 +161,50 @@ class ReservaUpdateEstadoView(UpdateView):
         reserva.save()
 
         # Devuelve una respuesta JSON para manejarla en el modal
-        return JsonResponse({'success': True, 'message': 'Estado actualizado con éxito.'})
+        return JsonResponse(
+            {"success": True, "message": "Estado actualizado con éxito."}
+        )
 
     def form_invalid(self, form):
         # Si hay un error con el formulario
-        return JsonResponse({'success': False, 'message': 'Hubo un error al actualizar el estado.'})
+        return JsonResponse(
+            {"success": False, "message": "Hubo un error al actualizar el estado."}
+        )
+
 
 # 📝 Crear reserva como empleado
 class ReservaEmpleadoCreateView(View):
     def get(self, request):
-        habitaciones = Habitacion.objects.filter(hotel=request.user.empleado.hotel, estado='disponible')
-        return render(request, 'reserves/reserva_empleado_form.html', {'habitaciones': habitaciones})
+        habitaciones = Habitacion.objects.filter(
+            hotel=request.user.empleado.hotel, estado="disponible"
+        )
+        return render(
+            request,
+            "reserves/reserva_empleado_form.html",
+            {"habitaciones": habitaciones},
+        )
 
     def post(self, request):
         tipo_usuario = request.POST.get("tipo_usuario")
         cedula = request.POST.get("cedula_usuario")
         cedula_normalizada = re.sub(r"[-\s]", "", cedula)
 
-        usuario = User.objects.filter(numero_cedula=cedula_normalizada, rol="usuario").first()
+        usuario = User.objects.filter(
+            numero_cedula=cedula_normalizada, rol="usuario"
+        ).first()
 
         if tipo_usuario == "registrado":
             if not usuario:
                 messages.error(request, "Usuario no encontrado con esa cédula.")
-                return render(request, 'reserves/reserva_empleado_form.html', {
-                    'habitaciones': Habitacion.objects.filter(hotel=request.user.empleado.hotel)
-                })
+                return render(
+                    request,
+                    "reserves/reserva_empleado_form.html",
+                    {
+                        "habitaciones": Habitacion.objects.filter(
+                            hotel=request.user.empleado.hotel
+                        )
+                    },
+                )
         else:
             usuario = User.objects.create_user(
                 username=f"user_{cedula_normalizada}",
@@ -173,7 +214,7 @@ class ReservaEmpleadoCreateView(View):
                 telefono=request.POST.get("telefono"),
                 numero_cedula=cedula_normalizada,
                 rol="usuario",
-                password="12345678"
+                password="12345678",
             )
 
         fecha_checkin = request.POST.get("fecha_checkin")
@@ -189,7 +230,7 @@ class ReservaEmpleadoCreateView(View):
             reservas_conflicto = ReservaHabitacion.objects.filter(
                 habitacion=habitacion,
                 reserva__fecha_checkin__lt=fecha_checkout,
-                reserva__fecha_checkout__gt=fecha_checkin
+                reserva__fecha_checkout__gt=fecha_checkin,
             )
 
             if reservas_conflicto.exists():
@@ -200,10 +241,15 @@ class ReservaEmpleadoCreateView(View):
         if habitaciones_ocupadas:
             mensaje_error = f"La(s) habitación(es) {', '.join(habitaciones_ocupadas)} ya están ocupadas en esas fechas."
             messages.error(request, mensaje_error)
-            return render(request, 'reserves/reserva_empleado_form.html', {
-                'habitaciones': Habitacion.objects.filter(hotel=request.user.empleado.hotel)
-            })
-
+            return render(
+                request,
+                "reserves/reserva_empleado_form.html",
+                {
+                    "habitaciones": Habitacion.objects.filter(
+                        hotel=request.user.empleado.hotel
+                    )
+                },
+            )
 
         reserva = Reserva.objects.create(
             fecha_checkin=fecha_checkin,
@@ -212,7 +258,7 @@ class ReservaEmpleadoCreateView(View):
             usuario=usuario,
             empleado=request.user.empleado,
             hotel=request.user.empleado.hotel,
-            monto_total=0
+            monto_total=0,
         )
 
         total = 0
@@ -225,44 +271,56 @@ class ReservaEmpleadoCreateView(View):
 
         messages.success(request, "Reserva creada correctamente.")
         return redirect("lista-reservas-empleado")
+
+
 # 🌐 Ver habitaciones disponibles para un hotel (usuarios)
 class HotelHabitacionesListView(View):
     def get(self, request, hotel_id):
-        habitaciones = Habitacion.objects.filter(hotel__id=hotel_id, estado='disponible')
-        return render(request, 'reserves/hotel_habitaciones_list.html', {'habitaciones': habitaciones})
-
+        habitaciones = Habitacion.objects.filter(
+            hotel__id=hotel_id, estado="disponible"
+        )
+        return render(
+            request,
+            "reserves/hotel_habitaciones_list.html",
+            {"habitaciones": habitaciones},
+        )
 
 
 # 📆 Crear reserva como usuario
 class ReservaUsuarioCreateView(View):
     # Maneja la solicitud GET para mostrar el formulario
     def get(self, request, hotel_id):
-        hotel = get_object_or_404(User, id=hotel_id, rol='hotel')
-        habitaciones = Habitacion.objects.filter(hotel=hotel,
-                                                 estado='disponible')  # Filtra solo las habitaciones disponibles
+        hotel = get_object_or_404(User, id=hotel_id, rol="hotel")
+        habitaciones = Habitacion.objects.filter(
+            hotel=hotel, estado="disponible"
+        )  # Filtra solo las habitaciones disponibles
 
         # Agregar la variable `user_authenticated` al contexto
         user_authenticated = request.user.is_authenticated
 
-        return render(request, 'reserves/reserva_usuario.html', {
-            'hotel': hotel,
-            'habitaciones': habitaciones,
-            'user_authenticated': user_authenticated  # Pasar esta variable
-        })
+        return render(
+            request,
+            "reserves/reserva_usuario.html",
+            {
+                "hotel": hotel,
+                "habitaciones": habitaciones,
+                "user_authenticated": user_authenticated,  # Pasar esta variable
+            },
+        )
 
     # Maneja la solicitud POST para crear la reserva
     def post(self, request, hotel_id):
-        hotel = get_object_or_404(User, id=hotel_id, rol='hotel')
+        hotel = get_object_or_404(User, id=hotel_id, rol="hotel")
 
         # Obtener los datos del formulario
-        fecha_checkin = request.POST.get('fecha_checkin')
-        fecha_checkout = request.POST.get('fecha_checkout')
-        metodo_pago = request.POST.get('metodo_pago')
-        cedula = request.POST.get('cedula_usuario')
-        telefono = request.POST.get('telefono')
-        nombre = request.POST.get('nombre')
-        apellido = request.POST.get('apellido')
-        archivo_comprobante = request.FILES.get('archivo_comprobante')
+        fecha_checkin = request.POST.get("fecha_checkin")
+        fecha_checkout = request.POST.get("fecha_checkout")
+        metodo_pago = request.POST.get("metodo_pago")
+        cedula = request.POST.get("cedula_usuario")
+        telefono = request.POST.get("telefono")
+        nombre = request.POST.get("nombre")
+        apellido = request.POST.get("apellido")
+        archivo_comprobante = request.FILES.get("archivo_comprobante")
 
         # Validar fechas
         try:
@@ -278,7 +336,9 @@ class ReservaUsuarioCreateView(View):
         else:
             # Si no está autenticado, buscar o crear un nuevo usuario con la cédula
             cedula_normalizada = re.sub(r"[-\s]", "", cedula)
-            usuario = User.objects.filter(numero_cedula=cedula_normalizada, rol="usuario").first()
+            usuario = User.objects.filter(
+                numero_cedula=cedula_normalizada, rol="usuario"
+            ).first()
 
             if not usuario:
                 usuario = User.objects.create_user(
@@ -288,11 +348,11 @@ class ReservaUsuarioCreateView(View):
                     telefono=telefono,
                     numero_cedula=cedula_normalizada,
                     rol="usuario",
-                    password="12345678"  # Considera generar una contraseña aleatoria o segura
+                    password="12345678",  # Considera generar una contraseña aleatoria o segura
                 )
 
         # Obtener las habitaciones seleccionadas
-        habitaciones_ids = request.POST.getlist('habitaciones')
+        habitaciones_ids = request.POST.getlist("habitaciones")
         habitaciones_disponibles = []
         habitaciones_ocupadas = []
 
@@ -301,7 +361,7 @@ class ReservaUsuarioCreateView(View):
             reservas_conflicto = ReservaHabitacion.objects.filter(
                 habitacion=habitacion,
                 reserva__fecha_checkin__lt=fecha_checkout,
-                reserva__fecha_checkout__gt=fecha_checkin
+                reserva__fecha_checkout__gt=fecha_checkin,
             )
             if reservas_conflicto.exists():
                 habitaciones_ocupadas.append(habitacion.numero)
@@ -312,18 +372,33 @@ class ReservaUsuarioCreateView(View):
         if habitaciones_ocupadas:
             mensaje = f"La(s) habitación(es) {', '.join(habitaciones_ocupadas)} ya están ocupadas en esas fechas."
             messages.error(request, mensaje)
-            return render(request, 'reserves/reserva_usuario.html', {
-                'hotel': hotel,
-                'habitaciones': Habitacion.objects.filter(hotel=hotel, estado='disponible'),
-            })
+            return render(
+                request,
+                "reserves/reserva_usuario.html",
+                {
+                    "hotel": hotel,
+                    "habitaciones": Habitacion.objects.filter(
+                        hotel=hotel, estado="disponible"
+                    ),
+                },
+            )
 
         # Si no hay habitaciones disponibles, mostrar mensaje y detener
         if not habitaciones_disponibles:
-            messages.error(request, "No hay habitaciones disponibles para las fechas seleccionadas.")
-            return render(request, 'reserves/reserva_usuario.html', {
-                'hotel': hotel,
-                'habitaciones': Habitacion.objects.filter(hotel=hotel, estado='disponible'),
-            })
+            messages.error(
+                request,
+                "No hay habitaciones disponibles para las fechas seleccionadas.",
+            )
+            return render(
+                request,
+                "reserves/reserva_usuario.html",
+                {
+                    "hotel": hotel,
+                    "habitaciones": Habitacion.objects.filter(
+                        hotel=hotel, estado="disponible"
+                    ),
+                },
+            )
 
         # Crear la reserva, sin validar el comprobante de pago
         reserva = Reserva.objects.create(
@@ -332,7 +407,7 @@ class ReservaUsuarioCreateView(View):
             metodo_pago=metodo_pago,
             usuario=usuario,
             hotel=hotel,
-            monto_total=0
+            monto_total=0,
         )
 
         total = 0
@@ -345,7 +420,9 @@ class ReservaUsuarioCreateView(View):
 
         # Si se sube un comprobante, guardar el archivo en la base de datos
         if archivo_comprobante:
-            ComprobantePago.objects.create(reserva=reserva, archivo_comprobante=archivo_comprobante)
+            ComprobantePago.objects.create(
+                reserva=reserva, archivo_comprobante=archivo_comprobante
+            )
 
         # ✅ Solo si pasa toda la validación, generamos el PDF:
         buffer = io.BytesIO()
@@ -353,28 +430,37 @@ class ReservaUsuarioCreateView(View):
 
         p.drawString(100, 750, f"Número de cédula del usuario: {usuario.numero_cedula}")
         p.drawString(100, 730, f"Nombre del hotel: {hotel.nombre_hotel}")
-        p.drawString(100, 710, f"Número de habitación: {', '.join([hab.numero for hab in habitaciones_disponibles])}")
-        p.drawString(100, 690, f"Check-in: {fecha_checkin} - Check-out: {fecha_checkout}")
+        p.drawString(
+            100,
+            710,
+            f"Número de habitación: {', '.join([hab.numero for hab in habitaciones_disponibles])}",
+        )
+        p.drawString(
+            100, 690, f"Check-in: {fecha_checkin} - Check-out: {fecha_checkout}"
+        )
         p.drawString(100, 670, f"Total: ${total}")
 
         p.showPage()
         p.save()
 
         buffer.seek(0)
-        response = HttpResponse(buffer, content_type='application/pdf')
-        response['Content-Disposition'] = 'inline; filename="reserva.pdf"'
+        response = HttpResponse(buffer, content_type="application/pdf")
+        response["Content-Disposition"] = 'inline; filename="reserva.pdf"'
         return response
 
 
+# Ver reservas como usuario autenticado
 class MisReservasView(View):
     # Muestra las reservas del usuario
     def get(self, request):
         if request.user.is_authenticated:
-            reservas = Reserva.objects.filter(usuario=request.user)  # Filtra las reservas del usuario autenticado
-            return render(request, 'reserves/mis_reservas.html', {'reservas': reservas})
+            reservas = Reserva.objects.filter(
+                usuario=request.user
+            )  # Filtra las reservas del usuario autenticado
+            return render(request, "reserves/mis_reservas.html", {"reservas": reservas})
         else:
             messages.error(request, "Por favor, inicie sesión para ver sus reservas.")
-            return redirect('login')
+            return redirect("login")
 
 
 class CancelarReservaView(View):
@@ -383,22 +469,29 @@ class CancelarReservaView(View):
         reserva = get_object_or_404(Reserva, id=reserva_id, usuario=request.user)
 
         # Verificar si la reserva se puede cancelar (solo puede cancelarse si está pendiente)
-        if reserva.estado == 'pendiente':
-            reserva.estado = 'cancelada'
+        if reserva.estado == "pendiente":
+            reserva.estado = "cancelada"
             reserva.save()
-            messages.success(request, f"La reserva {reserva.id} ha sido cancelada exitosamente.")
+            messages.success(
+                request, f"La reserva {reserva.id} ha sido cancelada exitosamente."
+            )
         else:
-            messages.error(request, f"La reserva {reserva.id} no puede ser cancelada porque ya está {reserva.estado}.")
+            messages.error(
+                request,
+                f"La reserva {reserva.id} no puede ser cancelada porque ya está {reserva.estado}.",
+            )
 
-        return redirect('mis_reservas')  # Redirige al listado de reservas
+        return redirect("mis_reservas")  # Redirige al listado de reservas
 
 
 class EmpleadoRequiredMixin(UserPassesTestMixin):
     def test_func(self):
-        return hasattr(self.request.user, 'empleado')
+        return hasattr(self.request.user, "empleado")
 
+
+# Acceder al reporte contable
 class ReporteContableView(LoginRequiredMixin, EmpleadoRequiredMixin, TemplateView):
-    template_name = 'reserves/reporte_contable.html'
+    template_name = "reserves/reporte_contable.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -407,44 +500,49 @@ class ReporteContableView(LoginRequiredMixin, EmpleadoRequiredMixin, TemplateVie
         hotel = self.request.user.empleado.hotel
 
         # Filtrar solo las reservas finalizadas de ese hotel
-        reservas_finalizadas = Reserva.objects.filter(estado='finalizada', hotel=hotel)
+        reservas_finalizadas = Reserva.objects.filter(estado="finalizada", hotel=hotel)
 
         # Calcular ingresos totales y promedio de ventas (asumiendo último mes o 30 días)
-        total_ingresos = float(reservas_finalizadas.aggregate(Sum('monto_total'))['monto_total__sum'] or 0)
+        total_ingresos = float(
+            reservas_finalizadas.aggregate(Sum("monto_total"))["monto_total__sum"] or 0
+        )
         promedio_ventas = round(total_ingresos / 30, 2)
 
-        context['total_ingresos'] = total_ingresos
-        context['promedio_ventas'] = promedio_ventas
+        context["total_ingresos"] = total_ingresos
+        context["promedio_ventas"] = promedio_ventas
 
         # === Gráfico de pastel: distribución por estado (solo del hotel del empleado) ===
-        distribucion = Reserva.objects.filter(hotel=hotel).values('estado').annotate(total=Count('id'))
-        labels = [d['estado'].capitalize() for d in distribucion]
-        sizes = [d['total'] for d in distribucion]
+        distribucion = (
+            Reserva.objects.filter(hotel=hotel)
+            .values("estado")
+            .annotate(total=Count("id"))
+        )
+        labels = [d["estado"].capitalize() for d in distribucion]
+        sizes = [d["total"] for d in distribucion]
 
         fig1, ax1 = plt.subplots()
-        ax1.pie(sizes, labels=labels, autopct='%1.1f%%', startangle=90)
-        ax1.axis('equal')
-        plt.title('Distribución de Reservas por Estado')
+        ax1.pie(sizes, labels=labels, autopct="%1.1f%%", startangle=90)
+        ax1.axis("equal")
+        plt.title("Distribución de Reservas por Estado")
 
         buf1 = io.BytesIO()
-        plt.savefig(buf1, format='png')
+        plt.savefig(buf1, format="png")
         plt.close(fig1)
         buf1.seek(0)
-        image_base64_1 = base64.b64encode(buf1.getvalue()).decode('utf-8')
+        image_base64_1 = base64.b64encode(buf1.getvalue()).decode("utf-8")
 
-        context['grafico_estado_base64'] = image_base64_1
+        context["grafico_estado_base64"] = image_base64_1
 
         # === Gráfico de barras: ingresos por mes (solo del hotel del empleado) ===
         ventas_mensuales = (
-            reservas_finalizadas
-            .annotate(mes=TruncMonth('fecha_reserva'))
-            .values('mes')
-            .annotate(total=Sum('monto_total'))
-            .order_by('mes')
+            reservas_finalizadas.annotate(mes=TruncMonth("fecha_reserva"))
+            .values("mes")
+            .annotate(total=Sum("monto_total"))
+            .order_by("mes")
         )
 
-        meses = [v['mes'].strftime('%b %Y') for v in ventas_mensuales]
-        ingresos = [float(v['total']) for v in ventas_mensuales]
+        meses = [v["mes"].strftime("%b %Y") for v in ventas_mensuales]
+        ingresos = [float(v["total"]) for v in ventas_mensuales]
 
         if ingresos:
             max_ingreso = float(max(ingresos))
@@ -456,29 +554,27 @@ class ReporteContableView(LoginRequiredMixin, EmpleadoRequiredMixin, TemplateVie
             colores = []
             for ingreso in ingresos:
                 if ingreso >= umbral_alto:
-                    colores.append('blue')  # Alto
+                    colores.append("blue")  # Alto
                 elif ingreso >= umbral_medio:
-                    colores.append('orange')  # Medio
+                    colores.append("orange")  # Medio
                 else:
-                    colores.append('red')  # Bajo
+                    colores.append("red")  # Bajo
         else:
-            colores = ['gray'] * len(meses)
+            colores = ["gray"] * len(meses)
 
         fig2, ax2 = plt.subplots()
         ax2.bar(meses, ingresos, color=colores, width=0.1)
-        plt.xticks(rotation=45, ha='right')
-        plt.ylabel('Ingresos ($)')
-        plt.title('Ingresos por Mes')
+        plt.xticks(rotation=45, ha="right")
+        plt.ylabel("Ingresos ($)")
+        plt.title("Ingresos por Mes")
         plt.tight_layout()
 
         buf2 = io.BytesIO()
-        plt.savefig(buf2, format='png')
+        plt.savefig(buf2, format="png")
         plt.close(fig2)
         buf2.seek(0)
-        image_base64_2 = base64.b64encode(buf2.getvalue()).decode('utf-8')
+        image_base64_2 = base64.b64encode(buf2.getvalue()).decode("utf-8")
 
-        context['grafico_barras_base64'] = image_base64_2
+        context["grafico_barras_base64"] = image_base64_2
 
         return context
-
-

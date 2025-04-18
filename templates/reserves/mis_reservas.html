@@ -1,56 +1,56 @@
 {% extends 'base.html' %}
 
 {% block content %}
-  <h2>Mis Reservas</h2>
-{% if messages %}
-  <ul class="messages">
-    {% for message in messages %}
-      <li class="{{ message.tags }}">{{ message }}</li>
-    {% endfor %}
-  </ul>
-{% endif %}
-    
-  {% if reservas %}
-    <table>
-      <thead>
-        <tr>
-          <th>Reserva ID</th>
-          <th>Hotel</th>
-          <th>Fecha de Check-in</th>
-          <th>Fecha de Check-out</th>
-          <th>Estado</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for reserva in reservas %}
-          <tr>
-            <td>{{ reserva.id }}</td>
-            <td>{{ reserva.hotel.nombre_hotel }}</td>
-            <td>{{ reserva.fecha_checkin }}</td>
-            <td>{{ reserva.fecha_checkout }}</td>
-            <td>{{ reserva.estado }}</td>
-            <td>
-              {% if reserva.estado == 'pendiente' %}
-                <form method="post" action="{% url 'cancelar_reserva' reserva.id %}" onsubmit="return confirmarCancelacion();">
-                  {% csrf_token %}
-                  <button type="submit">Cancelar Reserva</button>
-                </form>
-              {% else %}
-                <span>No se puede cancelar</span>
-              {% endif %}
-            </td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  {% else %}
-    <p>No tiene reservas.</p>
-  {% endif %}
+    <h2>Mis Reservas</h2>
+    {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+                <li class="{{ message.tags }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
 
-  <script>
-    function confirmarCancelacion() {
-      return confirm("¿Estás seguro de que deseas cancelar esta reserva?");
-    }
-  </script>
+    {% if reservas %}
+        <table>
+            <thead>
+            <tr>
+                <th>Reserva ID</th>
+                <th>Hotel</th>
+                <th>Fecha de Check-in</th>
+                <th>Fecha de Check-out</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for reserva in reservas %}
+                <tr>
+                    <td>{{ reserva.id }}</td>
+                    <td>{{ reserva.hotel.nombre_hotel }}</td>
+                    <td>{{ reserva.fecha_checkin }}</td>
+                    <td>{{ reserva.fecha_checkout }}</td>
+                    <td>{{ reserva.estado }}</td>
+                    <td>
+                        {% if reserva.estado == 'pendiente' %}
+                            <form method="post" action="{% url 'cancelar_reserva' reserva.id %}" onsubmit="return confirmarCancelacion();">
+                                {% csrf_token %}
+                                <button type="submit">Cancelar Reserva</button>
+                            </form>
+                        {% else %}
+                            <span>No se puede cancelar</span>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No tiene reservas.</p>
+    {% endif %}
+
+    <script>
+        function confirmarCancelacion() {
+            return confirm("¿Estás seguro de que deseas cancelar esta reserva?");
+        }
+    </script>
 {% endblock %}

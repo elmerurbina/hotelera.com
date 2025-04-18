@@ -2,15 +2,16 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 
-
+# Modelos para usuario
 class User(AbstractUser):
+    # Hay tres tipos de usuarios con acceso a diferentes vistas y funciones del sistema segun sus roles
     ROL_CHOICES = (
-        ('usuario', 'Usuario Particular'),
-        ('hotel', 'Hotel'),
-        ('empleado', 'Empleado'),
+        ("usuario", "Usuario Particular"),
+        ("hotel", "Hotel"),
+        ("empleado", "Empleado"),
     )
 
-    rol = models.CharField(max_length=10, choices=ROL_CHOICES, default='usuario')
+    rol = models.CharField(max_length=10, choices=ROL_CHOICES, default="usuario")
 
     # Campos comunes
     telefono = models.CharField(max_length=15, blank=True, null=True)
@@ -23,12 +24,14 @@ class User(AbstractUser):
         blank=True,
         null=True,
         unique=True,
-        verbose_name="Número de cédula"
+        verbose_name="Número de cédula",
     )
 
     # Campos exclusivos de hotel
     nombre_hotel = models.CharField(max_length=50, blank=True, null=True)
-    imagen_hotel = models.ImageField(upload_to='hotel_images/', blank=True, null=True)  # Nuevo campo
+    imagen_hotel = models.ImageField(
+        upload_to="hotel_images/", blank=True, null=True
+    )  # Nuevo campo
 
     def __str__(self):
         nombre = f"{self.first_name} {self.last_name}".strip()
@@ -36,8 +39,12 @@ class User(AbstractUser):
 
 
 class Empleado(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)  # Usuario registrado como empleado
-    hotel = models.ForeignKey(User, on_delete=models.CASCADE, related_name="empleados")  # Hotel dueño
+    user = models.OneToOneField(
+        User, on_delete=models.CASCADE
+    )  # Usuario registrado como empleado
+    hotel = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="empleados"
+    )  # Hotel dueño
     creado_en = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

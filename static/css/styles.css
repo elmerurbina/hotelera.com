@@ -151,6 +151,59 @@ th {
 .messages li.error { background-color: #f8d7da; color: #721c24; }
 .messages li.info { background-color: #d1ecf1; color: #0c5460; }
 
+#mes_prueba {
+        background-color: #ffcc00;  /* Color de fondo vibrante */
+        color: #fff;  /* Texto blanco */
+        padding: 0.2rem;
+        border-radius: 10px;  /* Bordes redondeados */
+        text-align: center;
+        font-weight: bold;
+        margin-top: 20px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);  /* Sombra sutil para darle profundidad */
+        font-size: 1.2em;
+        animation: bounceIn 1s ease-out;  /* Efecto de animación al aparecer */
+    }
+
+    /* Efecto de animación para el mensaje */
+    @keyframes bounceIn {
+        0% {
+            transform: scale(0.5);
+            opacity: 0;
+        }
+        50% {
+            transform: scale(1.1);
+            opacity: 0.7;
+        }
+        100% {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+
+    /* Estilo para el texto */
+    #mes_prueba p {
+        font-size: 1.5em;
+        margin: 0;
+        padding: 0;
+        font-family: 'Arial', sans-serif;
+    }
+
+    /* Estilo para el botón, si lo deseas agregar en el futuro */
+    #mes_prueba button {
+        background-color: #ff5733;
+        color: #fff;
+        padding: 5px 10px;
+        font-size: 1.1em;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    #mes_prueba button:hover {
+        background-color: #e44d26;
+    }
+
 /* Footer */
 footer {
   background-color: var(--color-primary);

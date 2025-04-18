@@ -12,7 +12,7 @@
             {% endfor %}
         </ul>
     {% endif %}
-    
+
     <h2>Registrar Empleado</h2>
     <form method="POST">
         {% csrf_token %}
@@ -23,30 +23,30 @@
         <button type="submit">Registrar empleado</button>
     </form>
 
-<!-- Botón para abrir el modal -->
-<p>¿Ya no es parte de tu staff? 
-  <a href="#" onclick="mostrarModal()">Eliminar Empleado</a>
-</p>
+    <!-- Botón para abrir el modal -->
+    <p>¿Ya no es parte de tu staff?
+        <a href="#" onclick="mostrarModal()">Eliminar Empleado</a>
+    </p>
 
-<!-- Modal -->
-<div id="modalEliminar" style="display:none; position:fixed; top:30%; left:50%; transform:translate(-50%, -30%); background:white; padding:20px; border:1px solid #ccc; box-shadow: 0 0 10px gray;">
-  <h3>Eliminar Empleado</h3>
-  <form method="POST" action="{% url 'eliminar_empleado' %}">
-    {% csrf_token %}
-    <label>Nombre de usuario:</label><br>
-    <input type="text" name="username" required><br><br>
-    <button type="submit" style="background-color:red; color:white;">Eliminar</button>
-    <button type="button" onclick="cerrarModal()">Cancelar</button>
-  </form>
-</div>
+    <!-- Modal -->
+    <div id="modalEliminar" style="display:none; position:fixed; top:30%; left:50%; transform:translate(-50%, -30%); background:white; padding:20px; border:1px solid #ccc; box-shadow: 0 0 10px gray;">
+        <h3>Eliminar Empleado</h3>
+        <form method="POST" action="{% url 'eliminar_empleado' %}">
+            {% csrf_token %}
+            <label>Nombre de usuario:</label><br>
+            <input type="text" name="username" required><br><br>
+            <button type="submit" style="background-color:red; color:white;">Eliminar</button>
+            <button type="button" onclick="cerrarModal()">Cancelar</button>
+        </form>
+    </div>
 
-<script>
-  function mostrarModal() {
-    document.getElementById('modalEliminar').style.display = 'block';
-  }
+    <script>
+        function mostrarModal() {
+            document.getElementById('modalEliminar').style.display = 'block';
+        }
 
-  function cerrarModal() {
-    document.getElementById('modalEliminar').style.display = 'none';
-  }
-</script>
+        function cerrarModal() {
+            document.getElementById('modalEliminar').style.display = 'none';
+        }
+    </script>
 {% endblock %}
