@@ -10,7 +10,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 STATICFILES_DIRS = [
-    BASE_DIR / "static",  # Aquí se indica la ubicación de tu carpeta de archivos estáticos
+    BASE_DIR / "static",
 ]
 
 MEDIA_URL = '/media/'
@@ -72,8 +72,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'hotelera',  # Nombre de la base de datos
-        'USER': 'root',            # Tu nombre de usuario de MySQL
-        'PASSWORD': '7>>HhNN6/fZ',     # Tu contraseña de MySQL
+        'USER': 'root',
+        'PASSWORD': '',
         'HOST': 'localhost',                   # Si estás usando MySQL en el mismo servidor, usa 'localhost'
         'PORT': '3306',                        # Puerto por defecto de MySQL
     }
