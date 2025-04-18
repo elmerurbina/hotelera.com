@@ -101,14 +101,15 @@ class HabitacionEditView(LoginRequiredMixin, EmpleadoRequiredMixin, View):
 # 📅 Ver reservas del hotel
 class ReservaListEmpleadoView(LoginRequiredMixin, EmpleadoRequiredMixin, View):
     def get(self, request):
-        # Anotar las reservas para ordenar: 0 si es pendiente, 1 si es finalizado
+        # Anotar las reservas para ordenar: 0 si es pendiente, 1 si es finalizado, 2 si es cancelado
         reservas = Reserva.objects.filter(hotel=request.user.empleado.hotel).annotate(
             orden_estado=Case(
-                When(estado="finalizado", then=Value(1)),
-                default=Value(0),
+                When(estado="finalizada", then=Value(2)),  # Estado finalizado al final
+                When(estado="cancelada", then=Value(3)),  # Estado cancelado al final
+                default=Value(1),  # Estado pendiente (default) al principio
                 output_field=IntegerField()
             )
-        ).order_by('orden_estado', '-fecha_checkin')  # Pendientes primero, más recientes primero
+        ).order_by('orden_estado', '-fecha_checkin')
 
         reservas_con_habitaciones = []
 
