@@ -21,10 +21,13 @@
     <!-- Sección 1: Datos personales y selección de habitaciones -->
     <div id="form-section-1">
       <!-- Datos de usuario -->
-      <div id="campo-cedula">
-        <label for="cedula">Cédula del usuario (con o sin guiones):</label>
-        <input type="text" name="cedula_usuario" required><br>
-      </div>
+
+    {% if not user_authenticated %}
+        <div>
+            <label for="cedula_usuario">Cédula de Identidad:</label>
+            <input type="text" id="cedula_usuario" name="cedula_usuario" required>
+        </div>
+    {% endif %}
 
       <!-- Campos adicionales si es nuevo usuario -->
       <div id="campos-nuevo-usuario" style="display: none;">
@@ -92,17 +95,18 @@
 
     if (metodo === 'deposito') {
       depositoSection.style.display = 'block';
-      boton.textContent = 'Comprobar pago';
-      boton.disabled = false;
+      boton.textContent = 'Comprobar pago: Muy pronto estará disponible';
+      boton.disabled = true;  // Deshabilitar el botón
     } else if (metodo === 'caja') {
       depositoSection.style.display = 'none';
       boton.textContent = 'Generar orden';
-      boton.disabled = false;
+      boton.disabled = false;  // Habilitar el botón
     } else {
       depositoSection.style.display = 'none';
-      boton.disabled = true;
+      boton.disabled = true;  // Deshabilitar el botón
     }
   }
 </script>
+
 
 {% endblock %}

@@ -1,5 +1,8 @@
 import re
 from datetime import datetime
+
+import pytesseract
+from PIL import Image
 from django.views.decorators.csrf import csrf_exempt
 from reportlab.pdfgen import canvas
 from django.db.models import Case, When, Value, IntegerField, Sum, Count
@@ -207,16 +210,23 @@ class ReservaUsuarioCreateView(View):
     # Maneja la solicitud GET para mostrar el formulario
     def get(self, request, hotel_id):
         hotel = get_object_or_404(User, id=hotel_id, rol='hotel')
-        habitaciones = Habitacion.objects.filter(hotel=hotel, estado='disponible')  # Filtra solo las habitaciones disponibles
+        habitaciones = Habitacion.objects.filter(hotel=hotel,
+                                                 estado='disponible')  # Filtra solo las habitaciones disponibles
+
+        # Agregar la variable `user_authenticated` al contexto
+        user_authenticated = request.user.is_authenticated
+
         return render(request, 'reserves/reserva_usuario.html', {
             'hotel': hotel,
-            'habitaciones': habitaciones
+            'habitaciones': habitaciones,
+            'user_authenticated': user_authenticated  # Pasar esta variable
         })
 
     # Maneja la solicitud POST para crear la reserva
     def post(self, request, hotel_id):
         hotel = get_object_or_404(User, id=hotel_id, rol='hotel')
 
+        # Obtener los datos del formulario
         fecha_checkin = request.POST.get('fecha_checkin')
         fecha_checkout = request.POST.get('fecha_checkout')
         metodo_pago = request.POST.get('metodo_pago')
@@ -234,21 +244,26 @@ class ReservaUsuarioCreateView(View):
             messages.error(request, "Formato de fecha inválido.")
             return redirect(request.path)
 
-        # Buscar o crear usuario
-        cedula_normalizada = re.sub(r"[-\s]", "", cedula)
-        usuario = User.objects.filter(numero_cedula=cedula_normalizada, rol="usuario").first()
+        # Comprobar si el usuario está autenticado
+        if request.user.is_authenticated:
+            usuario = request.user  # Si está autenticado, usar el usuario logeado
+        else:
+            # Si no está autenticado, buscar o crear un nuevo usuario con la cédula
+            cedula_normalizada = re.sub(r"[-\s]", "", cedula)
+            usuario = User.objects.filter(numero_cedula=cedula_normalizada, rol="usuario").first()
 
-        if not usuario:
-            usuario = User.objects.create_user(
-                username=f"user_{cedula_normalizada}",
-                first_name=nombre,
-                last_name=apellido,
-                telefono=telefono,
-                numero_cedula=cedula_normalizada,
-                rol="usuario",
-                password="12345678"
-            )
+            if not usuario:
+                usuario = User.objects.create_user(
+                    username=f"user_{cedula_normalizada}",
+                    first_name=nombre,
+                    last_name=apellido,
+                    telefono=telefono,
+                    numero_cedula=cedula_normalizada,
+                    rol="usuario",
+                    password="12345678"  # Considera generar una contraseña aleatoria o segura
+                )
 
+        # Obtener las habitaciones seleccionadas
         habitaciones_ids = request.POST.getlist('habitaciones')
         habitaciones_disponibles = []
         habitaciones_ocupadas = []
@@ -265,6 +280,7 @@ class ReservaUsuarioCreateView(View):
             else:
                 habitaciones_disponibles.append(habitacion)
 
+        # Si hay habitaciones ocupadas, mostrar mensaje y detener
         if habitaciones_ocupadas:
             mensaje = f"La(s) habitación(es) {', '.join(habitaciones_ocupadas)} ya están ocupadas en esas fechas."
             messages.error(request, mensaje)
@@ -273,7 +289,7 @@ class ReservaUsuarioCreateView(View):
                 'habitaciones': Habitacion.objects.filter(hotel=hotel, estado='disponible'),
             })
 
-        # Si no hay habitaciones disponibles, detener
+        # Si no hay habitaciones disponibles, mostrar mensaje y detener
         if not habitaciones_disponibles:
             messages.error(request, "No hay habitaciones disponibles para las fechas seleccionadas.")
             return render(request, 'reserves/reserva_usuario.html', {
@@ -281,7 +297,7 @@ class ReservaUsuarioCreateView(View):
                 'habitaciones': Habitacion.objects.filter(hotel=hotel, estado='disponible'),
             })
 
-        # Crear la reserva
+        # Crear la reserva, sin validar el comprobante de pago
         reserva = Reserva.objects.create(
             fecha_checkin=fecha_checkin,
             fecha_checkout=fecha_checkout,
@@ -299,8 +315,9 @@ class ReservaUsuarioCreateView(View):
         reserva.monto_total = total
         reserva.save()
 
+        # Si se sube un comprobante, guardar el archivo en la base de datos
         if archivo_comprobante:
-            ComprobantePago.objects.create(reserva=reserva, archivo=archivo_comprobante)
+            ComprobantePago.objects.create(reserva=reserva, archivo_comprobante=archivo_comprobante)
 
         # ✅ Solo si pasa toda la validación, generamos el PDF:
         buffer = io.BytesIO()
@@ -319,7 +336,6 @@ class ReservaUsuarioCreateView(View):
         response = HttpResponse(buffer, content_type='application/pdf')
         response['Content-Disposition'] = 'inline; filename="reserva.pdf"'
         return response
-
 
 class MisReservasListView(LoginRequiredMixin, UserPassesTestMixin, View):
     def test_func(self):
