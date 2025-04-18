@@ -16,6 +16,7 @@ STATICFILES_DIRS = [
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
+LOGOUT_REDIRECT_URL = 'pagina_logout'
 
 SECRET_KEY = "django-insecure-l^b$zy4wjy(hx@f#60k%6!5a@zwuwmp8uw!7)xua0^zzzv_obb"
 DEBUG = True

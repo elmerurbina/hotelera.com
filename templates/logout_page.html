@@ -1,0 +1,8 @@
+<!-- templates/logout_page.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+  <h2>Has cerrado sesión</h2>
+  <p>¡Hasta pronto! Tu sesión ha sido cerrada correctamente.</p>
+  <a href="{% url 'home' %}">Volver al inicio</a>
+{% endblock %}

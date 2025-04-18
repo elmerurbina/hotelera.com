@@ -24,4 +24,8 @@
         <h4>Logo del Hotel:</h4>
         <img src="{{ user.imagen_hotel.url }}" alt="Logo del hotel" width="150">
     {% endif %}
+    
+    <a href="{% url 'eliminar-perfil' %}" class="btn btn-danger" onclick="return confirm('¿Estás seguro de que deseas eliminar tu perfil? Esta acción es irreversible.');">
+    Eliminar perfil
+  </a>
 {% endblock %}

@@ -4,9 +4,9 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
 from django.views import View
 from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.hashers import make_password, check_password
-from django.views.generic import UpdateView
+from django.views.generic import UpdateView, DeleteView
 
 from .models import User, Empleado
 
@@ -162,3 +162,19 @@ class PerfilUsuarioView(LoginRequiredMixin, UpdateView):
             form.fields.pop('imagen_hotel')
 
         return form
+
+
+
+class EliminarPerfilView(LoginRequiredMixin, DeleteView):
+    model = User
+    template_name = 'auth/confirmar_eliminacion.html'
+    success_url = reverse_lazy('home')  # Redirige al logout después de la eliminación
+
+    def get_object(self, queryset=None):
+        return self.request.user  # El usuario autenticado actual
+
+    def delete(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        logout(request)  # Cierra la sesión después de eliminar el perfil
+        self.object.delete()
+        return super().delete(request, *args, **kwargs)
