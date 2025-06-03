@@ -1,0 +1,34 @@
+<form id="editReservaForm" action="{% url 'editar-reserva' reserva.id %}" method="POST">
+    {% csrf_token %}
+    <h3>Editar Reserva #{{ reserva.id }}</h3>
+
+    <label for="estado">Estado:</label><br>
+    <select name="estado" id="estado" required>
+        <option value="pendiente" {% if reserva.estado == 'pendiente' %}selected{% endif %}>Pendiente</option>
+        <option value="finalizada" {% if reserva.estado == 'finalizada' %}selected{% endif %}>Finalizada</option>
+        <option value="cancelada" {% if reserva.estado == 'cancelada' %}selected{% endif %}>Cancelada</option>
+    </select><br><br>
+
+    <label for="fecha_checkin">Fecha Check-in:</label><br>
+    <input type="date" name="fecha_checkin" id="fecha_checkin" value="{{ reserva.fecha_checkin|date:'Y-m-d' }}" required><br><br>
+
+    <label for="fecha_checkout">Fecha Check-out:</label><br>
+    <input type="date" name="fecha_checkout" id="fecha_checkout" value="{{ reserva.fecha_checkout|date:'Y-m-d' }}" required><br><br>
+
+    <label for="metodo_pago">Método de Pago:</label><br>
+    <input type="text" name="metodo_pago" id="metodo_pago" value="{{ reserva.metodo_pago }}" required><br><br>
+
+    <label for="habitaciones">Habitaciones:</label><br>
+    <select name="habitaciones" id="habitaciones" multiple size="5" required>
+        {% for habitacion in habitaciones %}
+            <option value="{{ habitacion.id }}" {% if habitacion.id in habitaciones_reserva %}selected{% endif %}>
+                {{ habitacion.numero }} - {{ habitacion.tipo }} - ${{ habitacion.precio_noche }}
+            </option>
+        {% endfor %}
+    </select><br><br>
+
+    <label for="monto_total">Monto Total:</label><br>
+    <input type="number" step="0.01" name="monto_total" id="monto_total" value="{{ reserva.monto_total }}" readonly><br><br>
+
+    <button type="submit" style="padding: 5px 15px; background-color: green; color: white; border: none;">Guardar</button>
+</form>

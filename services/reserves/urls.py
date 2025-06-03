@@ -12,7 +12,7 @@ from .views import (
     ReservasInicioView,
     ReporteContableView,
     MisReservasView,
-    CancelarReservaView,
+    CancelarReservaView, HabitacionDeleteView, ReservaEditView, ReservaDeleteView,
 )
 
 urlpatterns = [
@@ -37,6 +37,9 @@ urlpatterns = [
         ReservaListEmpleadoView.as_view(),
         name="lista-reservas-empleado",
     ),
+path('habitaciones/eliminar/', HabitacionDeleteView.as_view(), name='eliminar-habitacion'),
+path('reservas/editar/<int:pk>/', ReservaEditView.as_view(), name='editar-reserva'),
+    path('reservas/eliminar/<int:pk>/', ReservaDeleteView.as_view(), name='eliminar-reserva'),
     path(
         "reserva/<int:pk>/estado/",
         ReservaUpdateEstadoView.as_view(),

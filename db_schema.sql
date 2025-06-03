@@ -1,5 +1,7 @@
 -- Crear base de datos
 CREATE DATABASE IF NOT EXISTS hotelera;
+
+-- Concetarse a la base ded atos
 USE hotelera;
 
 -- Tabla de hoteles
@@ -94,6 +96,7 @@ CREATE TABLE reporte_contable (
     FOREIGN KEY (generado_por) REFERENCES empleado(id_empleado)
 );
 
+-- View para obtener los detalles de las reservas
 CREATE VIEW vista_reservas_detalladas AS
 SELECT
     r.id_reserva,
@@ -110,6 +113,7 @@ JOIN hotel h ON r.id_hotel = h.id_hotel;
 
 
 -- Sesion de Triggers Inicio
+--  Cambiar el estado a pendiente cuando se crea una nueva reserva
 DELIMITER //
 CREATE TRIGGER before_insert_reserva
 BEFORE INSERT ON reserva

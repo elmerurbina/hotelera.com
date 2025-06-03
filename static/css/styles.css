@@ -68,15 +68,28 @@ form select {
   border-radius: 4px;
 }
 
-form button {
+.btn-form-style {
   background-color: var(--color-primary);
   color: white;
-  padding: 12px 20px;
+  padding: 5px 10px;
   border: none;
   border-radius: 4px;
   cursor: pointer;
   font-size: 1rem;
-  width: 100%;
+  width: 30%;
+  margin-top: 10px;
+}
+
+
+form button {
+  background-color: var(--color-primary);
+  color: white;
+  padding: 5px 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  width: 30%;
   margin-top: 10px;
 }
 

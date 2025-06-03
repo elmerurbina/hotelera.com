@@ -4,7 +4,7 @@ import pytesseract
 from PIL import Image
 from django.views.decorators.csrf import csrf_exempt
 from reportlab.pdfgen import canvas
-from django.db.models import Case, When, Value, IntegerField, Sum, Count
+from django.db.models import Case, When, Value, IntegerField, Sum, Count, ProtectedError
 from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models.functions import TruncMonth
@@ -108,6 +108,31 @@ class HabitacionEditView(LoginRequiredMixin, EmpleadoRequiredMixin, View):
 
         return redirect("lista-habitaciones")
 
+
+# 🗑 Eliminar habitación
+class HabitacionDeleteView(LoginRequiredMixin, EmpleadoRequiredMixin, View):
+    def post(self, request):
+        habitacion_id = request.POST.get("id")
+
+        try:
+            habitacion = Habitacion.objects.get(
+                id=habitacion_id,
+                hotel=request.user.empleado.hotel
+            )
+            numero_habitacion = habitacion.numero
+            habitacion.delete()
+
+            messages.success(
+                request,
+                f"La habitación {numero_habitacion} fue eliminada correctamente."
+            )
+        except Habitacion.DoesNotExist:
+            messages.error(
+                request,
+                "Error: No se encontró la habitación que intentas eliminar."
+            )
+
+        return redirect("lista-habitaciones")
 
 # 📅 Ver reservas del hotel
 class ReservaListEmpleadoView(LoginRequiredMixin, EmpleadoRequiredMixin, View):
@@ -284,6 +309,92 @@ class ReservaEmpleadoCreateView(View):
         reserva.save()
 
         messages.success(request, "Reserva creada correctamente.")
+        return redirect("lista-reservas-empleado")
+
+
+class ReservaEditView(LoginRequiredMixin, EmpleadoRequiredMixin, View):
+    def get(self, request, pk):
+        reserva = get_object_or_404(
+            Reserva,
+            id=pk,
+            hotel=request.user.empleado.hotel
+        )
+
+        # Obtener habitaciones actuales de la reserva
+        habitaciones_reserva = [rh.habitacion.id for rh in ReservaHabitacion.objects.filter(reserva=reserva)]
+
+        # Obtener todas las habitaciones disponibles del hotel
+        habitaciones_disponibles = Habitacion.objects.filter(
+            hotel=request.user.empleado.hotel
+        )
+
+        return render(request, "reserves/reserva_edit.html", {
+            "reserva": reserva,
+            "habitaciones_reserva": habitaciones_reserva,
+            "habitaciones": habitaciones_disponibles,
+            "estados_reserva": ["finalizada", "pendiente", "cancelada", "completada"]
+        })
+
+    def post(self, request, pk):
+        reserva = get_object_or_404(
+            Reserva,
+            id=pk,
+            hotel=request.user.empleado.hotel
+        )
+
+        try:
+            # Actualizar datos básicos de la reserva
+            reserva.fecha_checkin = request.POST.get("fecha_checkin")
+            reserva.fecha_checkout = request.POST.get("fecha_checkout")
+            reserva.metodo_pago = request.POST.get("metodo_pago")
+            reserva.estado = request.POST.get("estado")
+
+            # Procesar habitaciones
+            habitaciones_ids = request.POST.getlist("habitaciones")
+
+            # Eliminar relaciones con habitaciones que ya no están seleccionadas
+            ReservaHabitacion.objects.filter(reserva=reserva).exclude(
+                habitacion_id__in=habitaciones_ids
+            ).delete()
+
+            # Agregar nuevas relaciones con habitaciones
+            for habitacion_id in habitaciones_ids:
+                ReservaHabitacion.objects.get_or_create(
+                    reserva=reserva,
+                    habitacion_id=habitacion_id
+                )
+
+            # Recalcular monto total
+            total = sum(h.habitacion.precio_noche for h in reserva.reservahabitacion_set.all())
+            reserva.monto_total = total
+
+            reserva.save()
+
+            messages.success(request, "Reserva actualizada correctamente")
+            return redirect("lista-reservas-empleado")
+
+        except Exception as e:
+            messages.error(request, f"Error al actualizar la reserva: {str(e)}")
+            return redirect("editar-reserva", pk=pk)
+
+
+class ReservaDeleteView(LoginRequiredMixin, EmpleadoRequiredMixin, View):
+    def post(self, request, pk):
+        reserva = get_object_or_404(
+            Reserva,
+            id=pk,
+            hotel=request.user.empleado.hotel
+        )
+
+        try:
+            numero_reserva = reserva.id
+            reserva.delete()
+            messages.success(request, f"Reserva #{numero_reserva} eliminada correctamente")
+        except ProtectedError:
+            messages.error(request, "No se puede eliminar la reserva porque tiene registros asociados")
+        except Exception as e:
+            messages.error(request, f"Error al eliminar la reserva: {str(e)}")
+
         return redirect("lista-reservas-empleado")
 
 

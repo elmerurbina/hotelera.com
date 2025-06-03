@@ -29,7 +29,12 @@
                 <td>${{ habitacion.precio_noche }}</td>
                 <td>{{ habitacion.estado }}</td>
                 <td>
-                    <button onclick="abrirModal({{ habitacion.id }}, '{{ habitacion.numero }}', '{{ habitacion.tipo }}', `{{ habitacion.descripcion|escapejs }}`, '{{ habitacion.precio_noche }}', '{{ habitacion.estado }}')">Editar</button>
+                    <button type="button" class="btn-form-style" onclick="abrirModal({{ habitacion.id }}, '{{ habitacion.numero }}', '{{ habitacion.tipo }}', `{{ habitacion.descripcion|escapejs }}`, '{{ habitacion.precio_noche }}', '{{ habitacion.estado }}')">Editar</button>
+                    <form method="post" action="{% url 'eliminar-habitacion' %}" style="display:inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="id" value="{{ habitacion.id }}">
+                        <button type="submit" class="button" onclick="return confirmarEliminacion(event, '{{ habitacion.numero|escapejs }}')">Eliminar</button>
+                    </form>
                 </td>
             </tr>
         {% empty %}
@@ -83,5 +88,16 @@
             document.getElementById('modalFondo').style.display = 'none';
             document.getElementById('modalEditar').style.display = 'none';
         }
+
+        function confirmarEliminacion(event, numeroHabitacion) {
+            event.preventDefault(); // Detener el envío del formulario
+            const form = event.target.closest('form');
+            
+            if (confirm(`¿Estás seguro que deseas eliminar la habitación ${numeroHabitacion}?\nEsta acción no se puede deshacer.`)) {
+                form.submit(); // Enviar el formulario si el usuario confirma
+            }
+            return false;
+        }
     </script>
+
 {% endblock %}
